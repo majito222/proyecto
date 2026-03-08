@@ -9,20 +9,52 @@ import java.util.Objects;
 public class Usuario {
 
     private final IdUsuario id;
-    private final String nombre;
-    private final Email email;
+    private String nombre;
+    private Email email;
     private final TipoUsuario tipo;
     private EstadoUsuario estado;
 
-    public Usuario(IdUsuario id, String nombre, Email email, TipoUsuario tipo) {
-        this.id = Objects.requireNonNull(id, "El id es obligatorio");
-        this.nombre = Objects.requireNonNull(nombre, "El nombre es obligatorio");
-        this.email = Objects.requireNonNull(email, "El email es obligatorio");
-        this.tipo = Objects.requireNonNull(tipo, "El tipo es obligatorio");
+    public Usuario(IdUsuario id,
+                   String nombre,
+                   Email email,
+                   TipoUsuario tipo) {
+
+        this.id = Objects.requireNonNull(id);
+        this.nombre = Objects.requireNonNull(nombre);
+        this.email = Objects.requireNonNull(email);
+        this.tipo = Objects.requireNonNull(tipo);
         this.estado = EstadoUsuario.ACTIVO;
     }
 
     public boolean estaActivo() {
         return estado == EstadoUsuario.ACTIVO;
+    }
+
+    public boolean puedeRegistrarSolicitudes() {
+        return tipo == TipoUsuario.ESTUDIANTE && estaActivo();
+    }
+
+    public boolean puedeAtenderSolicitudes() {
+        return tipo == TipoUsuario.FUNCIONARIO && estaActivo();
+    }
+
+    public boolean puedeAdministrarSolicitudes() {
+        return tipo == TipoUsuario.ADMINISTRADOR && estaActivo();
+    }
+
+    public void desactivarUsuario() {
+        this.estado = EstadoUsuario.INACTIVO;
+    }
+
+    public void activarUsuario() {
+        this.estado = EstadoUsuario.ACTIVO;
+    }
+
+    public void cambiarEmail(Email nuevoEmail) {
+        this.email = Objects.requireNonNull(nuevoEmail);
+    }
+
+    public void cambiarNombre(String nuevoNombre) {
+        this.nombre = Objects.requireNonNull(nuevoNombre);
     }
 }

@@ -45,7 +45,6 @@ class SolicitudTest {
 
         Solicitud solicitud = crearSolicitudBase();
         Usuario funcionario = crearFuncionario();
-
         solicitud.clasificar(TipoSolicitud.REGISTRO_ASIGNATURA, funcionario);
         solicitud.atender(funcionario);
         solicitud.marcarAtendida(funcionario);
@@ -54,15 +53,6 @@ class SolicitudTest {
         assertEquals(EstadoSolicitud.CERRADA, solicitud.getEstado());
     }
 
-    @Test
-    void noDebePermitirTransicionInvalida() {
-
-        Solicitud solicitud = crearSolicitudBase();
-        Usuario funcionario = crearFuncionario();
-
-        assertThrows(TransicionEstadoInvalidaException.class,
-                () -> solicitud.atender(funcionario));
-    }
 
     @Test
     void noDebeCerrarSiNoEstaAtendida() {

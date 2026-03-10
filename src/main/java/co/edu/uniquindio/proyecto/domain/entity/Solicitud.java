@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Entidad de dominio que representa una solicitud academica.
+ */
 public class Solicitud {
 
     private final CodigoSolicitud codigo;
@@ -19,14 +22,25 @@ public class Solicitud {
 
     private final List<Historial> historial = new ArrayList<>();
 
+    /**
+     * Crea una solicitud en estado REGISTRADA y registra el evento inicial.
+     *
+     * @param codigo codigo unico de la solicitud
+     * @param estudianteId identificador del estudiante
+     * @param canal canal por el que se registra la solicitud
+     * @param tipo tipo de solicitud
+     * @param descripcion descripcion inicial
+     */
     public Solicitud(CodigoSolicitud codigo,
                      IdUsuario estudianteId,
                      TipoCanal canal,
+                     TipoSolicitud tipo,
                      DescripcionSolicitud descripcion) {
 
         this.codigo = Objects.requireNonNull(codigo);
         this.estudianteId = Objects.requireNonNull(estudianteId);
         this.canal = Objects.requireNonNull(canal);
+        this.tipo = Objects.requireNonNull(tipo);
         this.descripcion = Objects.requireNonNull(descripcion);
 
         this.estado = EstadoSolicitud.REGISTRADA;
@@ -34,6 +48,12 @@ public class Solicitud {
         registrarEvento("Solicitud registrada");
     }
 
+    /**
+     * Clasifica la solicitud. Solo aplica si esta REGISTRADA.
+     *
+     * @param tipo tipo de solicitud asignado por el administrador
+     * @param administradorId identificador del administrador
+     */
     public void clasificarSolicitud(TipoSolicitud tipo, IdUsuario administradorId) {
 
         if (estado != EstadoSolicitud.REGISTRADA) {
@@ -46,6 +66,12 @@ public class Solicitud {
         registrarEvento("Solicitud clasificada por administrador " + administradorId);
     }
 
+    /**
+     * Asigna la prioridad. Solo aplica si esta CLASIFICADA.
+     *
+     * @param prioridad prioridad definida por el administrador
+     * @param administradorId identificador del administrador
+     */
     public void asignarPrioridad(PrioridadSolicitud prioridad, IdUsuario administradorId) {
 
         if (estado != EstadoSolicitud.CLASIFICADA) {
@@ -57,6 +83,11 @@ public class Solicitud {
         registrarEvento("Prioridad asignada por administrador " + administradorId);
     }
 
+    /**
+     * Inicia la atencion. Solo aplica si esta CLASIFICADA.
+     *
+     * @param funcionarioId identificador del funcionario
+     */
     public void iniciarAtencion(IdUsuario funcionarioId) {
 
         if (estado != EstadoSolicitud.CLASIFICADA) {
@@ -68,6 +99,12 @@ public class Solicitud {
         registrarEvento("Atención iniciada por funcionario " + funcionarioId);
     }
 
+    /**
+     * Cierra la solicitud. Solo aplica si esta EN_ATENCION.
+     *
+     * @param administradorId identificador del administrador
+     * @param observacion observacion de cierre
+     */
     public void cerrarSolicitud(IdUsuario administradorId, String observacion) {
 
         if (estado != EstadoSolicitud.EN_ATENCION) {
@@ -79,6 +116,11 @@ public class Solicitud {
         registrarEvento("Solicitud cerrada por administrador " + administradorId + ". Observación: " + observacion);
     }
 
+    /**
+     * Registra un evento en el historial con marca de tiempo.
+     *
+     * @param descripcion descripcion del evento
+     */
     private void registrarEvento(String descripcion) {
         historial.add(new Historial(descripcion, LocalDateTime.now()));
     }

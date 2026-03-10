@@ -355,3 +355,22 @@ Métodos del agregado Solicitud
 
 **Validado por prueba:**
 Cada cambio incrementa el tamaño del historial.
+---
+
+## 🔷 RN-18 — Solicitud requiere tipo y canal
+
+**Acción que regula:**
+Registro de solicitud.
+
+**Condición:**
+Toda solicitud debe tener definido un `TipoSolicitud` y un `TipoCanal`.
+Si alguno es nulo, debe rechazarse el registro.
+
+**RF asociado:**
+RF-01 — Registro de solicitudes
+
+**Vive en:**
+Constructor del agregado `Solicitud`
+
+**Validado por prueba:**
+Debe lanzar excepción si tipo o canal son nulos.

@@ -2,7 +2,6 @@ package co.edu.uniquindio.proyecto.domain.entity;
 
 import co.edu.uniquindio.proyecto.domain.valueobject.*;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -80,7 +79,7 @@ public class Solicitud {
     }
 
     private void registrarEvento(String descripcion) {
-        historial.add(new Historial(descripcion, LocalDateTime.now()));
+        historial.add(new Historial(descripcion, "SISTEMA", ""));
     }
 
 }

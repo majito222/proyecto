@@ -1,10 +1,13 @@
-package co.edu.uniquindio.proyecto.domain.entity;
+﻿package co.edu.uniquindio.proyecto.domain.entity;
 
 import co.edu.uniquindio.proyecto.domain.valueobject.*;
 
-import java.util.ArrayList;
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.NavigableSet;
 import java.util.Objects;
+import java.util.TreeSet;
 
 /**
  * Entidad de dominio que representa una solicitud academica.
@@ -13,13 +16,17 @@ public class Solicitud {
 
     private final CodigoSolicitud codigo;
     private final IdUsuario estudianteId;
+    private final String estudianteNombre;
     private final TipoCanal canal;
     private final DescripcionSolicitud descripcion;
     private EstadoSolicitud estado;
     private TipoSolicitud tipo;
     private PrioridadSolicitud prioridad;
 
-    private final List<Historial> historial = new ArrayList<>();
+    private static final Comparator<Historial> HISTORIAL_POR_FECHA =
+            Comparator.comparing(Historial::fecha);
+
+    private final NavigableSet<Historial> historial = new TreeSet<>(HISTORIAL_POR_FECHA);
 
     /**
      * Crea una solicitud en estado REGISTRADA y registra el evento inicial.
@@ -32,12 +39,14 @@ public class Solicitud {
      */
     public Solicitud(CodigoSolicitud codigo,
                      IdUsuario estudianteId,
+                     String estudianteNombre,
                      TipoCanal canal,
                      TipoSolicitud tipo,
                      DescripcionSolicitud descripcion) {
 
         this.codigo = Objects.requireNonNull(codigo);
         this.estudianteId = Objects.requireNonNull(estudianteId);
+        this.estudianteNombre = Objects.requireNonNull(estudianteNombre);
         this.canal = Objects.requireNonNull(canal);
         this.tipo = Objects.requireNonNull(tipo);
         this.descripcion = Objects.requireNonNull(descripcion);
@@ -95,24 +104,78 @@ public class Solicitud {
 
         this.estado = EstadoSolicitud.EN_ATENCION;
 
-        registrarEvento("Atención iniciada por funcionario " + funcionarioId);
+        registrarEvento("Atencion iniciada por funcionario " + funcionarioId);
     }
 
     /**
-     * Cierra la solicitud. Solo aplica si esta EN_ATENCION.
+     * Marca la solicitud como atendida. Solo aplica si esta EN_ATENCION.
+     *
+     * @param funcionarioId identificador del funcionario
+     */
+    public void marcarAtendida(IdUsuario funcionarioId) {
+
+        if (estado != EstadoSolicitud.EN_ATENCION) {
+            throw new IllegalStateException("Solo solicitudes en atencion pueden marcarse como atendidas");
+        }
+
+        this.estado = EstadoSolicitud.ATENDIDA;
+
+        registrarEvento("Solicitud atendida por funcionario " + funcionarioId);
+    }
+
+    /**
+     * Cierra la solicitud. Solo aplica si esta ATENDIDA.
      *
      * @param administradorId identificador del administrador
      * @param observacion observacion de cierre
      */
     public void cerrarSolicitud(IdUsuario administradorId, String observacion) {
 
-        if (estado != EstadoSolicitud.EN_ATENCION) {
-            throw new IllegalStateException("Solo solicitudes en atención pueden cerrarse");
+        if (estado != EstadoSolicitud.ATENDIDA) {
+            throw new IllegalStateException("Solo solicitudes atendidas pueden cerrarse");
         }
 
         this.estado = EstadoSolicitud.CERRADA;
 
-        registrarEvento("Solicitud cerrada por administrador " + administradorId + ". Observación: " + observacion);
+        registrarEvento("Solicitud cerrada por administrador " + administradorId + ". Observacion: " + observacion);
+    }
+
+    /**
+     * Expone el historial como coleccion inmodificable.
+     *
+     * @return lista inmodificable de eventos
+     */
+    public List<Historial> obtenerHistorial() {
+        return List.copyOf(historial);
+    }
+
+    public IdUsuario getEstudianteId() {
+        return estudianteId;
+    }
+
+    public String getEstudianteNombre() {
+        return estudianteNombre;
+    }
+
+    /**
+     * Busca eventos del historial por rango de fechas.
+     *
+     * @param desde fecha inicial (incluyente)
+     * @param hasta fecha final (incluyente)
+     * @return lista inmodificable de eventos encontrados
+     */
+    public List<Historial> buscarHistorialEntre(LocalDateTime desde, LocalDateTime hasta) {
+        Objects.requireNonNull(desde, "La fecha inicial no puede ser nula");
+        Objects.requireNonNull(hasta, "La fecha final no puede ser nula");
+
+        if (desde.isAfter(hasta)) {
+            throw new IllegalArgumentException("La fecha inicial no puede ser posterior a la fecha final");
+        }
+
+        Historial inicio = marcadorHistorial(desde);
+        Historial fin = marcadorHistorial(hasta);
+
+        return List.copyOf(historial.subSet(inicio, true, fin, true));
     }
 
     /**
@@ -121,7 +184,16 @@ public class Solicitud {
      * @param descripcion descripcion del evento
      */
     private void registrarEvento(String descripcion) {
-        historial.add(new Historial(descripcion, "SISTEMA", ""));
+        LocalDateTime fecha = LocalDateTime.now();
+        Historial evento = new Historial(descripcion, "SISTEMA", "", fecha);
+
+        while (!historial.add(evento)) {
+            fecha = fecha.plusNanos(1);
+            evento = new Historial(descripcion, "SISTEMA", "", fecha);
+        }
     }
 
+    private static Historial marcadorHistorial(LocalDateTime fecha) {
+        return new Historial("BUSQUEDA", "SISTEMA", "", fecha);
+    }
 }

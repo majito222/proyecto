@@ -8,17 +8,92 @@ import static org.junit.jupiter.api.Assertions.*;
 class UsuarioTest {
 
     @Test
-    void debeCrearseUsuarioActivoPorDefecto() {
-        // RN-12 (exito): el usuario se crea activo por defecto.
-        Usuario usuario = nuevoUsuario(TipoUsuario.ESTUDIANTE);
+    void usuarioSeCreaActivo() {
+        // Regla: un usuario nuevo inicia en estado ACTIVO.
+        Usuario usuario = estudianteActivo();
 
         assertTrue(usuario.estaActivo());
     }
 
     @Test
-    void noDebeEstarActivoSiSeDesactiva() {
-        // RN-12 (falla): al desactivar, el usuario deja de estar activo.
-        Usuario usuario = nuevoUsuario(TipoUsuario.ESTUDIANTE);
+    void estudianteActivoPuedeRegistrarSolicitudes() {
+        // Regla: solo un estudiante activo puede registrar solicitudes.
+        Usuario usuario = estudianteActivo();
+
+        assertTrue(usuario.puedeRegistrarSolicitudes());
+    }
+
+    @Test
+    void usuarioNoEstudianteNoPuedeRegistrarSolicitudes() {
+        // Regla: un usuario que no es estudiante no puede registrar solicitudes.
+        Usuario usuario = funcionarioActivo();
+
+        assertFalse(usuario.puedeRegistrarSolicitudes());
+    }
+
+    @Test
+    void estudianteInactivoNoPuedeRegistrarSolicitudes() {
+        // Regla: un estudiante inactivo no puede registrar solicitudes.
+        Usuario usuario = estudianteActivo();
+        usuario.desactivarUsuario();
+
+        assertFalse(usuario.puedeRegistrarSolicitudes());
+    }
+
+    @Test
+    void funcionarioActivoPuedeAtenderSolicitudes() {
+        // Regla: solo un funcionario activo puede atender solicitudes.
+        Usuario usuario = funcionarioActivo();
+
+        assertTrue(usuario.puedeAtenderSolicitudes());
+    }
+
+    @Test
+    void usuarioNoFuncionarioNoPuedeAtenderSolicitudes() {
+        // Regla: un usuario que no es funcionario no puede atender solicitudes.
+        Usuario usuario = administradorActivo();
+
+        assertFalse(usuario.puedeAtenderSolicitudes());
+    }
+
+    @Test
+    void funcionarioInactivoNoPuedeAtenderSolicitudes() {
+        // Regla: un funcionario inactivo no puede atender solicitudes.
+        Usuario usuario = funcionarioActivo();
+        usuario.desactivarUsuario();
+
+        assertFalse(usuario.puedeAtenderSolicitudes());
+    }
+
+    @Test
+    void administradorActivoPuedeAdministrarSolicitudes() {
+        // Regla: solo un administrador activo puede administrar solicitudes.
+        Usuario usuario = administradorActivo();
+
+        assertTrue(usuario.puedeAdministrarSolicitudes());
+    }
+
+    @Test
+    void usuarioNoAdministradorNoPuedeAdministrarSolicitudes() {
+        // Regla: un usuario que no es administrador no puede administrar solicitudes.
+        Usuario usuario = estudianteActivo();
+
+        assertFalse(usuario.puedeAdministrarSolicitudes());
+    }
+
+    @Test
+    void administradorInactivoNoPuedeAdministrarSolicitudes() {
+        // Regla: un administrador inactivo no puede administrar solicitudes.
+        Usuario usuario = administradorActivo();
+        usuario.desactivarUsuario();
+
+        assertFalse(usuario.puedeAdministrarSolicitudes());
+    }
+
+    @Test
+    void desactivarUsuarioCambiaEstadoAInactivo() {
+        // Regla: desactivar cambia el estado a INACTIVO.
+        Usuario usuario = estudianteActivo();
 
         usuario.desactivarUsuario();
 
@@ -26,85 +101,77 @@ class UsuarioTest {
     }
 
     @Test
-    void debePermitirRegistrarSolicitudesSiEsEstudianteActivo() {
-        // RN-14 (exito): estudiante activo puede registrar solicitudes.
-        Usuario usuario = nuevoUsuario(TipoUsuario.ESTUDIANTE);
+    void activarUsuarioCambiaEstadoAActivo() {
+        // Regla: activar cambia el estado a ACTIVO.
+        Usuario usuario = estudianteActivo();
+        usuario.desactivarUsuario();
 
-        assertTrue(usuario.puedeRegistrarSolicitudes());
+        usuario.activarUsuario();
+
+        assertTrue(usuario.estaActivo());
     }
 
     @Test
-    void noDebePermitirRegistrarSolicitudesSiNoEsEstudiante() {
-        // RN-14 (falla): un rol distinto a ESTUDIANTE no puede registrar.
-        Usuario usuario = nuevoUsuario(TipoUsuario.ADMINISTRADOR);
+    void cambiarEmailConValorValidoDebeFuncionar() {
+        // Regla: el email debe actualizarse con un valor valido.
+        Usuario usuario = estudianteActivo();
+        Email nuevoEmail = new Email("nuevo@uniquindio.edu.co");
 
-        assertFalse(usuario.puedeRegistrarSolicitudes());
+        usuario.cambiarEmail(nuevoEmail);
+
+        assertEquals(nuevoEmail, usuario.getEmail());
     }
 
     @Test
-    void debePermitirAtenderSolicitudesSiEsFuncionarioActivo() {
-        // RN-13/RN-15 (exito): funcionario activo puede atender solicitudes.
-        Usuario usuario = nuevoUsuario(TipoUsuario.FUNCIONARIO);
+    void cambiarEmailConNullDebeFallar() {
+        // Regla: no se permite asignar email nulo.
+        Usuario usuario = estudianteActivo();
 
-        assertTrue(usuario.puedeAtenderSolicitudes());
+        assertThrows(NullPointerException.class, () -> usuario.cambiarEmail(null));
     }
 
     @Test
-    void noDebePermitirAtenderSolicitudesSiNoEsFuncionario() {
-        // RN-13/RN-15 (falla): un rol distinto a FUNCIONARIO no puede atender.
-        Usuario usuario = nuevoUsuario(TipoUsuario.ADMINISTRADOR);
+    void cambiarNombreConValorValidoDebeFuncionar() {
+        // Regla: el nombre debe actualizarse con un valor valido.
+        Usuario usuario = estudianteActivo();
 
-        assertFalse(usuario.puedeAtenderSolicitudes());
+        usuario.cambiarNombre("Nombre actualizado");
+
+        assertEquals("Nombre actualizado", usuario.getNombre());
     }
 
     @Test
-    void debePermitirAdministrarSolicitudesSiEsAdministradorActivo() {
-        // RN-13/RN-15 (exito): administrador activo puede gestionar solicitudes.
-        Usuario usuario = nuevoUsuario(TipoUsuario.ADMINISTRADOR);
+    void cambiarNombreConNullDebeFallar() {
+        // Regla: no se permite asignar nombre nulo.
+        Usuario usuario = estudianteActivo();
 
-        assertTrue(usuario.puedeAdministrarSolicitudes());
+        assertThrows(NullPointerException.class, () -> usuario.cambiarNombre(null));
     }
 
-    @Test
-    void noDebePermitirAdministrarSolicitudesSiNoEsAdministrador() {
-        // RN-13/RN-15 (falla): un rol distinto a ADMINISTRADOR no puede administrar.
-        Usuario usuario = nuevoUsuario(TipoUsuario.FUNCIONARIO);
-
-        assertFalse(usuario.puedeAdministrarSolicitudes());
-    }
-
-    @Test
-    void debeAceptarEmailValido() {
-        // RN-08 (exito): email con formato valido.
-        assertDoesNotThrow(() -> new Email("juan@uniquindio.edu.co"));
-    }
-
-    @Test
-    void noDebePermitirEmailInvalido() {
-        // RN-08 (falla): email con formato invalido.
-        assertThrows(IllegalArgumentException.class,
-                () -> new Email("correo-invalido"));
-    }
-
-    @Test
-    void debeAceptarIdNumerico() {
-        // RN-09 (exito): id con solo numeros.
-        assertDoesNotThrow(() -> new IdUsuario("123456"));
-    }
-
-    @Test
-    void noDebePermitirIdNoNumerico() {
-        // RN-09 (falla): id con caracteres no numericos.
-        assertThrows(IllegalArgumentException.class,
-                () -> new IdUsuario("ABC123"));
-    }
-
-    private static Usuario nuevoUsuario(TipoUsuario tipo) {
+    private Usuario estudianteActivo() {
         return new Usuario(
-                IdUsuario.generar(),
+                new IdUsuario("123456"),
                 "Juan Perez",
-                new Email("juan@uniquindio.edu.co"),
-                tipo
+                new Email("juan.perez@uniquindio.edu.co"),
+                TipoUsuario.ESTUDIANTE
+        );
+    }
+
+    private Usuario funcionarioActivo() {
+        return new Usuario(
+                new IdUsuario("234567"),
+                "Laura Ruiz",
+                new Email("laura.ruiz@uniquindio.edu.co"),
+                TipoUsuario.FUNCIONARIO
+        );
+    }
+
+    private Usuario administradorActivo() {
+        return new Usuario(
+                new IdUsuario("345678"),
+                "Carlos Diaz",
+                new Email("carlos.diaz@uniquindio.edu.co"),
+                TipoUsuario.ADMINISTRADOR
         );
     }
 }

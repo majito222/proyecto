@@ -9,7 +9,7 @@
 Este documento describe las reglas de negocio que gobiernan el comportamiento del dominio, indicando:
 
 * Acción regulada
-* Condición obligatoria
+  * Condición obligatoria
 * RF asociado
 * Ubicación en el código
 

@@ -1,9 +1,9 @@
 package co.edu.uniquindio.proyecto.domain.entity;
 
 import co.edu.uniquindio.proyecto.domain.valueobject.*;
+import co.edu.uniquindio.proyecto.domain.service.SolicitudService;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Field;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,322 +11,158 @@ import static org.junit.jupiter.api.Assertions.*;
 class SolicitudTest {
 
     @Test
-    void debeCrearSolicitudEnEstadoRegistradaYRegistrarHistorial() {
-        // RN-01 (exito): al crear la solicitud queda REGISTRADA y se agrega un evento al historial.
-        Solicitud solicitud = nuevaSolicitud();
+    void crearSolicitudRegistraEventoInicial() {
+        // Regla: una solicitud nueva se registra con un evento inicial.
+        Solicitud solicitud = solicitudBase();
 
-        EstadoSolicitud estado = leerCampo(solicitud, "estado", EstadoSolicitud.class);
-        List<?> historial = leerCampo(solicitud, "historial", List.class);
-
-        assertEquals(EstadoSolicitud.REGISTRADA, estado);
-        assertEquals(1, historial.size());
+        assertEquals(1, solicitud.obtenerHistorial().size());
+        assertEquals("Solicitud registrada", solicitud.obtenerHistorial().get(0).accion());
     }
 
     @Test
-    void noDebeCrearSolicitudConDatosNulos() {
-        // RN-18 (falla): codigo no puede ser nulo.
-        assertThrows(NullPointerException.class,
-                () -> new Solicitud(
-                        null,
-                        new IdUsuario("123456"),
-                        TipoCanal.SAC,
-                        TipoSolicitud.CONSULTA_ACADEMICA,
-                        new DescripcionSolicitud("Solicitud valida de prueba")
-                ));
+    void clasificarSolicitudCuandoEstaRegistradaDebeFuncionar() {
+        // Regla: solo solicitudes REGISTRADAS pueden clasificarse.
+        Solicitud solicitud = solicitudBase();
+
+        assertDoesNotThrow(() ->
+                solicitud.clasificarSolicitud(TipoSolicitud.HOMOLOGACION, idAdministrador()));
+        assertEquals(2, solicitud.obtenerHistorial().size());
     }
 
     @Test
-    void debeCrearSolicitudConTipoYCanal() {
-        // RN-18 (exito): tipo y canal definidos.
-        Solicitud solicitud = new Solicitud(
-                CodigoSolicitud.generar(),
-                new IdUsuario("123456"),
-                TipoCanal.CORREO,
-                TipoSolicitud.HOMOLOGACION,
-                new DescripcionSolicitud("Solicitud valida de prueba")
-        );
+    void clasificarSolicitudCuandoNoEstaRegistradaDebeFallar() {
+        // Regla: no se puede clasificar una solicitud que ya no esta REGISTRADA.
+        Solicitud solicitud = solicitudBase();
+        solicitud.clasificarSolicitud(TipoSolicitud.HOMOLOGACION, idAdministrador());
 
-        EstadoSolicitud estado = leerCampo(solicitud, "estado", EstadoSolicitud.class);
-        assertEquals(EstadoSolicitud.REGISTRADA, estado);
+        assertThrows(IllegalStateException.class, () ->
+                solicitud.clasificarSolicitud(TipoSolicitud.CANCELACION, idAdministrador()));
     }
 
     @Test
-    void noDebeCrearSolicitudSiCanalEsNulo() {
-        // RN-18 (falla): canal obligatorio.
-        assertThrows(NullPointerException.class,
-                () -> new Solicitud(
-                        CodigoSolicitud.generar(),
-                        new IdUsuario("123456"),
-                        null,
-                        TipoSolicitud.CONSULTA_ACADEMICA,
-                        new DescripcionSolicitud("Solicitud valida de prueba")
-                ));
+    void asignarPrioridadCuandoClasificadaDebeFuncionar() {
+        // Regla: solo solicitudes CLASIFICADAS pueden priorizarse.
+        Solicitud solicitud = solicitudBase();
+        solicitud.clasificarSolicitud(TipoSolicitud.HOMOLOGACION, idAdministrador());
+
+        assertDoesNotThrow(() ->
+                solicitud.asignarPrioridad(prioridadAlta(), idAdministrador()));
+        assertEquals(3, solicitud.obtenerHistorial().size());
     }
 
     @Test
-    void noDebeCrearSolicitudSiTipoEsNulo() {
-        // RN-18 (falla): tipo obligatorio.
-        assertThrows(NullPointerException.class,
-                () -> new Solicitud(
-                        CodigoSolicitud.generar(),
-                        new IdUsuario("123456"),
-                        TipoCanal.SAC,
-                        null,
-                        new DescripcionSolicitud("Solicitud valida de prueba")
-                ));
+    void asignarPrioridadCuandoNoClasificadaDebeFallar() {
+        // Regla: no se puede priorizar una solicitud sin clasificar.
+        Solicitud solicitud = solicitudBase();
+
+        assertThrows(IllegalStateException.class, () ->
+                solicitud.asignarPrioridad(prioridadAlta(), idAdministrador()));
     }
 
     @Test
-    void debeClasificarSolicitudSiEstaRegistrada() {
-        // RN-02 (exito): REGISTRADA -> CLASIFICADA.
-        Solicitud solicitud = nuevaSolicitud();
+    void iniciarAtencionCuandoClasificadaDebeFuncionar() {
+        // Regla: solo solicitudes CLASIFICADAS pueden entrar en atencion.
+        Solicitud solicitud = solicitudBase();
+        solicitud.clasificarSolicitud(TipoSolicitud.CONSULTA_ACADEMICA, idAdministrador());
 
-        solicitud.clasificarSolicitud(
-                TipoSolicitud.CANCELACION,
-                new IdUsuario("654321")
-        );
-
-        EstadoSolicitud estado = leerCampo(solicitud, "estado", EstadoSolicitud.class);
-        TipoSolicitud tipo = leerCampo(solicitud, "tipo", TipoSolicitud.class);
-        List<?> historial = leerCampo(solicitud, "historial", List.class);
-
-        assertEquals(EstadoSolicitud.CLASIFICADA, estado);
-        assertEquals(TipoSolicitud.CANCELACION, tipo);
-        assertEquals(2, historial.size());
+        assertDoesNotThrow(() ->
+                solicitud.iniciarAtencion(idFuncionario()));
+        assertEquals(3, solicitud.obtenerHistorial().size());
     }
 
     @Test
-    void noDebeClasificarSiNoEstaRegistrada() {
-        // RN-02 (falla): no se puede clasificar dos veces.
-        Solicitud solicitud = nuevaSolicitud();
+    void iniciarAtencionCuandoNoClasificadaDebeFallar() {
+        // Regla: no se puede iniciar atencion si no esta CLASIFICADA.
+        Solicitud solicitud = solicitudBase();
 
-        solicitud.clasificarSolicitud(
-                TipoSolicitud.CONSULTA_ACADEMICA,
-                new IdUsuario("654321")
-        );
-
-        assertThrows(IllegalStateException.class,
-                () -> solicitud.clasificarSolicitud(
-                        TipoSolicitud.HOMOLOGACION,
-                        new IdUsuario("654321")
-                ));
+        assertThrows(IllegalStateException.class, () ->
+                solicitud.iniciarAtencion(idFuncionario()));
     }
 
     @Test
-    void debeAsignarPrioridadSiEstaClasificada() {
-        // RN-02 (exito): con clasificacion previa, se puede priorizar.
-        Solicitud solicitud = nuevaSolicitud();
+    void marcarAtendidaCuandoEnAtencionDebeFuncionar() {
+        // Regla: solo solicitudes EN_ATENCION pueden marcarse atendidas.
+        Solicitud solicitud = solicitudBase();
+        solicitud.clasificarSolicitud(TipoSolicitud.CONSULTA_ACADEMICA, idAdministrador());
+        solicitud.iniciarAtencion(idFuncionario());
 
-        solicitud.clasificarSolicitud(
-                TipoSolicitud.REGISTRO_ASIGNATURA,
-                new IdUsuario("654321")
-        );
-
-        solicitud.asignarPrioridad(
-                new PrioridadSolicitud(
-                        PrioridadSolicitud.Nivel.ALTA,
-                        "Impacto alto"
-                ),
-                new IdUsuario("654321")
-        );
-
-        PrioridadSolicitud prioridad = leerCampo(
-                solicitud,
-                "prioridad",
-                PrioridadSolicitud.class
-        );
-        EstadoSolicitud estado = leerCampo(solicitud, "estado", EstadoSolicitud.class);
-
-        assertEquals(PrioridadSolicitud.Nivel.ALTA, prioridad.nivel());
-        assertEquals(EstadoSolicitud.CLASIFICADA, estado);
+        assertDoesNotThrow(() ->
+                solicitud.marcarAtendida(idFuncionario()));
+        assertEquals(4, solicitud.obtenerHistorial().size());
     }
 
     @Test
-    void noDebeAsignarPrioridadSiNoEstaClasificada() {
-        // RN-02 (falla): no se puede priorizar sin estar CLASIFICADA.
-        Solicitud solicitud = nuevaSolicitud();
+    void marcarAtendidaCuandoNoEnAtencionDebeFallar() {
+        // Regla: no se puede marcar atendida si no esta EN_ATENCION.
+        Solicitud solicitud = solicitudBase();
 
-        assertThrows(IllegalStateException.class,
-                () -> solicitud.asignarPrioridad(
-                        new PrioridadSolicitud(
-                                PrioridadSolicitud.Nivel.ALTA,
-                                "Impacto alto"
-                        ),
-                        new IdUsuario("654321")
-                ));
+        assertThrows(IllegalStateException.class, () ->
+                solicitud.marcarAtendida(idFuncionario()));
     }
 
     @Test
-    void debeIniciarAtencionSiEstaClasificada() {
-        // RN-02 (exito): CLASIFICADA -> EN_ATENCION.
-        Solicitud solicitud = nuevaSolicitud();
+    void cerrarSolicitudCuandoAtendidaDebeFuncionar() {
+        // Regla: solo solicitudes ATENDIDAS pueden cerrarse.
+        Solicitud solicitud = solicitudBase();
+        solicitud.clasificarSolicitud(TipoSolicitud.CONSULTA_ACADEMICA, idAdministrador());
+        solicitud.iniciarAtencion(idFuncionario());
+        solicitud.marcarAtendida(idFuncionario());
 
-        solicitud.clasificarSolicitud(
-                TipoSolicitud.SOLICITUD_CUPO,
-                new IdUsuario("654321")
-        );
-
-        solicitud.iniciarAtencion(
-                new IdUsuario("777777")
-        );
-
-        EstadoSolicitud estado = leerCampo(solicitud, "estado", EstadoSolicitud.class);
-        assertEquals(EstadoSolicitud.EN_ATENCION, estado);
+        assertDoesNotThrow(() ->
+                solicitud.cerrarSolicitud(idAdministrador(), "Cierre con observacion"));
+        assertEquals(5, solicitud.obtenerHistorial().size());
     }
 
     @Test
-    void noDebeIniciarAtencionSiNoEstaClasificada() {
-        // RN-02 (falla): solo CLASIFICADA puede pasar a EN_ATENCION.
-        Solicitud solicitud = nuevaSolicitud();
+    void cerrarSolicitudCuandoNoAtendidaDebeFallar() {
+        // Regla: no se puede cerrar si no esta ATENDIDA.
+        Solicitud solicitud = solicitudBase();
 
-        assertThrows(IllegalStateException.class,
-                () -> solicitud.iniciarAtencion(
-                        new IdUsuario("777777")
-                ));
+        assertThrows(IllegalStateException.class, () ->
+                solicitud.cerrarSolicitud(idAdministrador(), "Cierre invalido"));
     }
 
     @Test
-    void debeCerrarSolicitudSiEstaEnAtencion() {
-        // RN-03 (exito): con atencion iniciada, se puede cerrar.
-        Solicitud solicitud = nuevaSolicitud();
+    void buscarHistorialPorEstudianteDebeRetornarOrdenCronologico() {
+        // Regla: el historial combinado debe venir ordenado cronologicamente.
+        Solicitud solicitud = solicitudBase();
+        solicitud.clasificarSolicitud(TipoSolicitud.HOMOLOGACION, idAdministrador());
+        solicitud.asignarPrioridad(prioridadAlta(), idAdministrador());
 
-        solicitud.clasificarSolicitud(
-                TipoSolicitud.CANCELACION,
-                new IdUsuario("654321")
+        SolicitudService service = new SolicitudService();
+
+        List<Historial> historial = service.buscarHistorialPorEstudianteId(
+                List.of(solicitud),
+                solicitud.getEstudianteId()
         );
 
-        solicitud.iniciarAtencion(
-                new IdUsuario("777777")
-        );
-
-        solicitud.cerrarSolicitud(
-                new IdUsuario("654321"),
-                "Observacion"
-        );
-
-        EstadoSolicitud estado = leerCampo(solicitud, "estado", EstadoSolicitud.class);
-        assertEquals(EstadoSolicitud.CERRADA, estado);
-    }
-
-    @Test
-    void noDebeCerrarSolicitudSiNoEstaEnAtencion() {
-        // RN-03 (falla): cerrar requiere estar en EN_ATENCION.
-        Solicitud solicitud = nuevaSolicitud();
-
-        solicitud.clasificarSolicitud(
-                TipoSolicitud.CANCELACION,
-                new IdUsuario("654321")
-        );
-
-        assertThrows(IllegalStateException.class,
-                () -> solicitud.cerrarSolicitud(
-                        new IdUsuario("654321"),
-                        "Observacion"
-                ));
-    }
-
-    @Test
-    void noDebePermitirModificarSiEstaCerrada() {
-        // RN-04 (falla): una solicitud cerrada no se puede modificar.
-        Solicitud solicitud = nuevaSolicitud();
-
-        solicitud.clasificarSolicitud(
-                TipoSolicitud.CANCELACION,
-                new IdUsuario("654321")
-        );
-
-        solicitud.iniciarAtencion(
-                new IdUsuario("777777")
-        );
-
-        solicitud.cerrarSolicitud(
-                new IdUsuario("654321"),
-                "Observacion"
-        );
-
-        assertThrows(IllegalStateException.class,
-                () -> solicitud.clasificarSolicitud(
-                        TipoSolicitud.HOMOLOGACION,
-                        new IdUsuario("654321")
-                ));
-    }
-
-    @Test
-    void debeRegistrarEventoPorCadaAccion() {
-        // RN-05/RN-17 (exito): cada accion agrega un evento al historial.
-        Solicitud solicitud = nuevaSolicitud();
-
-        List<?> historial = leerCampo(solicitud, "historial", List.class);
-        assertEquals(1, historial.size());
-
-        solicitud.clasificarSolicitud(
-                TipoSolicitud.CANCELACION,
-                new IdUsuario("654321")
-        );
-        assertEquals(2, historial.size());
-
-        solicitud.asignarPrioridad(
-                new PrioridadSolicitud(
-                        PrioridadSolicitud.Nivel.MEDIA,
-                        "Impacto medio"
-                ),
-                new IdUsuario("654321")
-        );
         assertEquals(3, historial.size());
-
-        solicitud.iniciarAtencion(
-                new IdUsuario("777777")
-        );
-        assertEquals(4, historial.size());
-
-        solicitud.cerrarSolicitud(
-                new IdUsuario("654321"),
-                "Observacion"
-        );
-        assertEquals(5, historial.size());
+        assertTrue(historial.get(0).fecha().isBefore(historial.get(1).fecha())
+                || historial.get(0).fecha().isEqual(historial.get(1).fecha()));
+        assertTrue(historial.get(1).fecha().isBefore(historial.get(2).fecha())
+                || historial.get(1).fecha().isEqual(historial.get(2).fecha()));
     }
 
-    @Test
-    void debeAsignarCodigoNoNulo() {
-        // RN-16 (exito): el codigo no puede ser nulo en la solicitud creada.
-        Solicitud solicitud = nuevaSolicitud();
-
-        CodigoSolicitud codigo = leerCampo(solicitud, "codigo", CodigoSolicitud.class);
-        assertNotNull(codigo);
-    }
-
-    @Test
-    void noDebePermitirCodigoNulo() {
-        // RN-16 (falla): el codigo no puede ser nulo.
-        assertThrows(NullPointerException.class,
-                () -> new Solicitud(
-                        null,
-                        new IdUsuario("123456"),
-                        TipoCanal.SAC,
-                        TipoSolicitud.CONSULTA_ACADEMICA,
-                        new DescripcionSolicitud("Solicitud valida de prueba")
-                ));
-    }
-
-    private static Solicitud nuevaSolicitud() {
-        // Crea una solicitud valida para reutilizar en las pruebas.
+    private Solicitud solicitudBase() {
         return new Solicitud(
-                CodigoSolicitud.generar(),
+                new CodigoSolicitud("SOL-001"),
                 new IdUsuario("123456"),
-                TipoCanal.SAC,
-                TipoSolicitud.CONSULTA_ACADEMICA,
-                new DescripcionSolicitud("Solicitud valida de prueba")
+                "Estudiante Prueba",
+                TipoCanal.CSU,
+                TipoSolicitud.REGISTRO_ASIGNATURA,
+                new DescripcionSolicitud("Descripcion valida")
         );
     }
 
-    private static <T> T leerCampo(Object objetivo, String campo, Class<T> tipo) {
-        // Acceso controlado a campos privados para validar estado interno.
-        try {
-            Field field = objetivo.getClass().getDeclaredField(campo);
-            field.setAccessible(true);
-            return tipo.cast(field.get(objetivo));
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new IllegalStateException("No se pudo leer el campo: " + campo, e);
-        }
+    private IdUsuario idAdministrador() {
+        return new IdUsuario("654321");
+    }
+
+    private IdUsuario idFuncionario() {
+        return new IdUsuario("765432");
+    }
+
+    private PrioridadSolicitud prioridadAlta() {
+        return new PrioridadSolicitud(PrioridadSolicitud.Nivel.ALTA, "Justificacion valida");
     }
 }

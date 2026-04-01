@@ -1,0 +1,138 @@
+package co.edu.uniquindio.proyecto.infrastructure.config;
+
+import co.edu.uniquindio.proyecto.application.usecase.*;
+import co.edu.uniquindio.proyecto.domain.repository.SolicitudRepository;
+import co.edu.uniquindio.proyecto.domain.repository.UsuarioRepository;
+import co.edu.uniquindio.proyecto.domain.service.UsuarioService;
+import co.edu.uniquindio.proyecto.infrastructure.repository.SolicitudRepositoryEnMemoria;
+import co.edu.uniquindio.proyecto.infrastructure.repository.UsuarioRepositoryEnMemoria;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * Configuración de beans para inyección de dependencias.
+ */
+@Configuration
+public class ApplicationConfig {
+
+    /**
+     * Bean para el repositorio de solicitudes en memoria.
+     */
+    @Bean
+    public SolicitudRepository solicitudRepository() {
+        return new SolicitudRepositoryEnMemoria();
+    }
+
+    /**
+     * Bean para el repositorio de usuarios en memoria.
+     */
+    @Bean
+    public UsuarioRepository usuarioRepository() {
+        return new UsuarioRepositoryEnMemoria();
+    }
+
+    /**
+     * Bean para el servicio de usuarios.
+     */
+    @Bean
+    public UsuarioService usuarioService() {
+        return new UsuarioService();
+    }
+
+    /**
+     * Bean para el caso de uso crear solicitud.
+     */
+    @Bean
+    public CrearSolicitudUseCase crearSolicitudUseCase(
+            SolicitudRepository solicitudRepository,
+            UsuarioRepository usuarioRepository) {
+        return new CrearSolicitudUseCase(solicitudRepository, usuarioRepository);
+    }
+
+    /**
+     * Bean para el caso de uso asignar responsable.
+     */
+    @Bean
+    public AsignarResponsableUseCase asignarResponsableUseCase(
+            SolicitudRepository solicitudRepository,
+            UsuarioRepository usuarioRepository) {
+        return new AsignarResponsableUseCase(solicitudRepository, usuarioRepository);
+    }
+
+    /**
+     * Bean para el caso de uso cambiar estado.
+     */
+    @Bean
+    public CambiarEstadoUseCase cambiarEstadoUseCase(
+            SolicitudRepository solicitudRepository,
+            UsuarioRepository usuarioRepository) {
+        return new CambiarEstadoUseCase(solicitudRepository, usuarioRepository);
+    }
+
+    /**
+     * Bean para el caso de uso cerrar solicitud.
+     */
+    @Bean
+    public CerrarSolicitudUseCase cerrarSolicitudUseCase(
+            SolicitudRepository solicitudRepository,
+            UsuarioRepository usuarioRepository) {
+        return new CerrarSolicitudUseCase(solicitudRepository, usuarioRepository);
+    }
+
+    /**
+     * Bean para el caso de uso crear usuario.
+     */
+    @Bean
+    public CrearUsuarioUseCase crearUsuarioUseCase(UsuarioRepository usuarioRepository) {
+        return new CrearUsuarioUseCase(usuarioRepository);
+    }
+
+    /**
+     * Bean para el caso de uso iniciar atención.
+     */
+    @Bean
+    public IniciarAtencionUseCase iniciarAtencionUseCase(
+            SolicitudRepository solicitudRepository,
+            UsuarioRepository usuarioRepository) {
+        return new IniciarAtencionUseCase(solicitudRepository, usuarioRepository);
+    }
+
+    /**
+     * Bean para el caso de uso marcar atendida.
+     */
+    @Bean
+    public MarcarAtendidaUseCase marcarAtendidaUseCase(
+            SolicitudRepository solicitudRepository,
+            UsuarioRepository usuarioRepository) {
+        return new MarcarAtendidaUseCase(solicitudRepository, usuarioRepository);
+    }
+
+    /**
+     * Bean para el caso de uso clasificar solicitud.
+     */
+    @Bean
+    public ClasificarSolicitudUseCase clasificarSolicitudUseCase(
+            SolicitudRepository solicitudRepository,
+            UsuarioRepository usuarioRepository) {
+        return new ClasificarSolicitudUseCase(solicitudRepository, usuarioRepository);
+    }
+
+    /**
+     * Bean para el caso de uso priorizar solicitud.
+     */
+    @Bean
+    public PriorizarSolicitudUseCase priorizarSolicitudUseCase(
+            SolicitudRepository solicitudRepository,
+            UsuarioRepository usuarioRepository) {
+        return new PriorizarSolicitudUseCase(solicitudRepository, usuarioRepository);
+    }
+
+    /**
+     * Bean para el caso de uso consultar solicitudes por estado.
+     */
+    @Bean
+    public ConsultarSolicitudesPorEstadoUseCase consultarSolicitudesPorEstadoUseCase(
+            SolicitudRepository solicitudRepository) {
+        return new ConsultarSolicitudesPorEstadoUseCase(solicitudRepository);
+    }
+}

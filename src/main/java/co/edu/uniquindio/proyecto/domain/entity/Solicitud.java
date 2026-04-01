@@ -1,4 +1,4 @@
-﻿package co.edu.uniquindio.proyecto.domain.entity;
+package co.edu.uniquindio.proyecto.domain.entity;
 
 import co.edu.uniquindio.proyecto.domain.valueobject.*;
 
@@ -155,6 +155,30 @@ public class Solicitud {
 
     public String getEstudianteNombre() {
         return estudianteNombre;
+    }
+
+    public CodigoSolicitud getCodigo() {
+        return codigo;
+    }
+
+    public TipoCanal getCanal() {
+        return canal;
+    }
+
+    public DescripcionSolicitud getDescripcion() {
+        return descripcion;
+    }
+
+    public EstadoSolicitud getEstado() {
+        return estado;
+    }
+
+    public TipoSolicitud getTipo() {
+        return tipo;
+    }
+
+    public PrioridadSolicitud getPrioridad() {
+        return prioridad;
     }
 
     /**

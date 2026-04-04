@@ -5,14 +5,15 @@ import co.edu.uniquindio.proyecto.domain.repository.UsuarioRepository;
 import co.edu.uniquindio.proyecto.domain.valueobject.Email;
 import co.edu.uniquindio.proyecto.domain.valueobject.IdUsuario;
 import co.edu.uniquindio.proyecto.domain.valueobject.TipoUsuario;
+import org.springframework.stereotype.Repository;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * Implementación en memoria del repositorio de usuarios.
  */
+@Repository
 public class UsuarioRepositoryEnMemoria implements UsuarioRepository {
 
     private final Map<String, Usuario> usuarios = new ConcurrentHashMap<>();
@@ -44,7 +45,7 @@ public class UsuarioRepositoryEnMemoria implements UsuarioRepository {
     public List<Usuario> buscarPorTipo(TipoUsuario tipo) {
         return usuarios.values().stream()
                 .filter(usuario -> usuario.getTipo() == tipo)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override

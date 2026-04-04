@@ -2,6 +2,7 @@ package co.edu.uniquindio.proyecto.infrastructure.mapper;
 
 import co.edu.uniquindio.proyecto.domain.valueobject.*;
 import co.edu.uniquindio.proyecto.infrastructure.dto.CrearUsuarioRequest;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Component;
 
 /**
@@ -24,7 +25,7 @@ public class UsuarioRequestMapper {
     /**
      * Convierte tipo de API a dominio.
      */
-    private TipoUsuario convertirTipo(CrearUsuarioRequest.TipoUsuarioDto tipo) {
+    private TipoUsuario convertirTipo(CrearUsuarioRequest.@NotNull(message = "El tipo de usuario es requerido") @org.jetbrains.annotations.UnknownNullability TipoUsuario tipo) {
         return TipoUsuario.valueOf(tipo.name());
     }
 

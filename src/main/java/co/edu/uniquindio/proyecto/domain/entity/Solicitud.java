@@ -1,6 +1,8 @@
 package co.edu.uniquindio.proyecto.domain.entity;
 
+import co.edu.uniquindio.proyecto.domain.exception.TransicionEstadoInvalidaException;
 import co.edu.uniquindio.proyecto.domain.valueobject.*;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -14,7 +16,9 @@ import java.util.TreeSet;
  */
 public class Solicitud {
 
+    @Getter
     private final CodigoSolicitud codigo;
+    @Getter
     private final IdUsuario estudianteId;
     private final String estudianteNombre;
     private final TipoCanal canal;
@@ -22,21 +26,32 @@ public class Solicitud {
     private EstadoSolicitud estado;
     private TipoSolicitud tipo;
     private PrioridadSolicitud prioridad;
+    private IdUsuario responsableId;
 
     private static final Comparator<Historial> HISTORIAL_POR_FECHA =
             Comparator.comparing(Historial::fecha);
 
     private final NavigableSet<Historial> historial = new TreeSet<>(HISTORIAL_POR_FECHA);
 
-    /**
-     * Crea una solicitud en estado REGISTRADA y registra el evento inicial.
-     *
-     * @param codigo codigo unico de la solicitud
-     * @param estudianteId identificador del estudiante
-     * @param canal canal por el que se registra la solicitud
-     * @param tipo tipo de solicitud
-     * @param descripcion descripcion inicial
-     */
+    // 🔥 MÉTODO ESTÁTICO AGREGADO (DDD correcto)
+    public static Solicitud crear(
+            CodigoSolicitud codigo,
+            IdUsuario estudianteId,
+            String estudianteNombre,
+            TipoCanal canal,
+            TipoSolicitud tipo,
+            DescripcionSolicitud descripcion) {
+
+        return new Solicitud(
+                codigo,
+                estudianteId,
+                estudianteNombre,
+                canal,
+                tipo,
+                descripcion
+        );
+    }
+
     public Solicitud(CodigoSolicitud codigo,
                      IdUsuario estudianteId,
                      String estudianteNombre,
@@ -56,16 +71,10 @@ public class Solicitud {
         registrarEvento("Solicitud registrada");
     }
 
-    /**
-     * Clasifica la solicitud. Solo aplica si esta REGISTRADA.
-     *
-     * @param tipo tipo de solicitud asignado por el administrador
-     * @param administradorId identificador del administrador
-     */
     public void clasificarSolicitud(TipoSolicitud tipo, IdUsuario administradorId) {
 
         if (estado != EstadoSolicitud.REGISTRADA) {
-            throw new IllegalStateException("Solo solicitudes registradas pueden clasificarse");
+            throw new TransicionEstadoInvalidaException("Solo solicitudes registradas pueden clasificarse");
         }
 
         this.tipo = Objects.requireNonNull(tipo);
@@ -74,16 +83,10 @@ public class Solicitud {
         registrarEvento("Solicitud clasificada por administrador " + administradorId);
     }
 
-    /**
-     * Asigna la prioridad. Solo aplica si esta CLASIFICADA.
-     *
-     * @param prioridad prioridad definida por el administrador
-     * @param administradorId identificador del administrador
-     */
     public void asignarPrioridad(PrioridadSolicitud prioridad, IdUsuario administradorId) {
 
         if (estado != EstadoSolicitud.CLASIFICADA) {
-            throw new IllegalStateException("Solo solicitudes clasificadas pueden priorizarse");
+            throw new TransicionEstadoInvalidaException("Solo solicitudes clasificadas pueden priorizarse");
         }
 
         this.prioridad = Objects.requireNonNull(prioridad);
@@ -91,15 +94,21 @@ public class Solicitud {
         registrarEvento("Prioridad asignada por administrador " + administradorId);
     }
 
-    /**
-     * Inicia la atencion. Solo aplica si esta CLASIFICADA.
-     *
-     * @param funcionarioId identificador del funcionario
-     */
+    public void asignarResponsable(IdUsuario responsableId) {
+
+        if (estado != EstadoSolicitud.CLASIFICADA) {
+            throw new TransicionEstadoInvalidaException("Solo solicitudes clasificadas pueden asignar responsable");
+        }
+
+        this.responsableId = Objects.requireNonNull(responsableId);
+
+        registrarEvento("Responsable asignado: " + responsableId);
+    }
+
     public void iniciarAtencion(IdUsuario funcionarioId) {
 
         if (estado != EstadoSolicitud.CLASIFICADA) {
-            throw new IllegalStateException("Solo solicitudes clasificadas pueden ser atendidas");
+            throw new TransicionEstadoInvalidaException("Solo solicitudes clasificadas pueden ser atendidas");
         }
 
         this.estado = EstadoSolicitud.EN_ATENCION;
@@ -107,15 +116,10 @@ public class Solicitud {
         registrarEvento("Atencion iniciada por funcionario " + funcionarioId);
     }
 
-    /**
-     * Marca la solicitud como atendida. Solo aplica si esta EN_ATENCION.
-     *
-     * @param funcionarioId identificador del funcionario
-     */
     public void marcarAtendida(IdUsuario funcionarioId) {
 
         if (estado != EstadoSolicitud.EN_ATENCION) {
-            throw new IllegalStateException("Solo solicitudes en atencion pueden marcarse como atendidas");
+            throw new TransicionEstadoInvalidaException("Solo solicitudes en atencion pueden marcarse como atendidas");
         }
 
         this.estado = EstadoSolicitud.ATENDIDA;
@@ -123,16 +127,10 @@ public class Solicitud {
         registrarEvento("Solicitud atendida por funcionario " + funcionarioId);
     }
 
-    /**
-     * Cierra la solicitud. Solo aplica si esta ATENDIDA.
-     *
-     * @param administradorId identificador del administrador
-     * @param observacion observacion de cierre
-     */
     public void cerrarSolicitud(IdUsuario administradorId, String observacion) {
 
         if (estado != EstadoSolicitud.ATENDIDA) {
-            throw new IllegalStateException("Solo solicitudes atendidas pueden cerrarse");
+            throw new TransicionEstadoInvalidaException("Solo solicitudes atendidas pueden cerrarse");
         }
 
         this.estado = EstadoSolicitud.CERRADA;
@@ -140,25 +138,12 @@ public class Solicitud {
         registrarEvento("Solicitud cerrada por administrador " + administradorId + ". Observacion: " + observacion);
     }
 
-    /**
-     * Expone el historial como coleccion inmodificable.
-     *
-     * @return lista inmodificable de eventos
-     */
     public List<Historial> obtenerHistorial() {
         return List.copyOf(historial);
     }
 
-    public IdUsuario getEstudianteId() {
-        return estudianteId;
-    }
-
     public String getEstudianteNombre() {
         return estudianteNombre;
-    }
-
-    public CodigoSolicitud getCodigo() {
-        return codigo;
     }
 
     public TipoCanal getCanal() {
@@ -181,13 +166,6 @@ public class Solicitud {
         return prioridad;
     }
 
-    /**
-     * Busca eventos del historial por rango de fechas.
-     *
-     * @param desde fecha inicial (incluyente)
-     * @param hasta fecha final (incluyente)
-     * @return lista inmodificable de eventos encontrados
-     */
     public List<Historial> buscarHistorialEntre(LocalDateTime desde, LocalDateTime hasta) {
         Objects.requireNonNull(desde, "La fecha inicial no puede ser nula");
         Objects.requireNonNull(hasta, "La fecha final no puede ser nula");
@@ -202,11 +180,6 @@ public class Solicitud {
         return List.copyOf(historial.subSet(inicio, true, fin, true));
     }
 
-    /**
-     * Registra un evento en el historial con marca de tiempo.
-     *
-     * @param descripcion descripcion del evento
-     */
     private void registrarEvento(String descripcion) {
         LocalDateTime fecha = LocalDateTime.now();
         Historial evento = new Historial(descripcion, "SISTEMA", "", fecha);

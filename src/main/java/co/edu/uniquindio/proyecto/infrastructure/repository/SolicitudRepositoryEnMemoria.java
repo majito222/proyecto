@@ -5,14 +5,15 @@ import co.edu.uniquindio.proyecto.domain.repository.SolicitudRepository;
 import co.edu.uniquindio.proyecto.domain.valueobject.CodigoSolicitud;
 import co.edu.uniquindio.proyecto.domain.valueobject.EstadoSolicitud;
 import co.edu.uniquindio.proyecto.domain.valueobject.IdUsuario;
+import org.springframework.stereotype.Repository;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * Implementación en memoria del repositorio de solicitudes.
  */
+@Repository
 public class SolicitudRepositoryEnMemoria implements SolicitudRepository {
 
     private final Map<String, Solicitud> solicitudes = new ConcurrentHashMap<>();
@@ -37,14 +38,14 @@ public class SolicitudRepositoryEnMemoria implements SolicitudRepository {
     public List<Solicitud> buscarPorEstado(EstadoSolicitud estado) {
         return solicitudes.values().stream()
                 .filter(solicitud -> solicitud.getEstado() == estado)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
     public List<Solicitud> buscarPorEstudiante(IdUsuario estudianteId) {
         return solicitudes.values().stream()
                 .filter(solicitud -> solicitud.getEstudianteId().equals(estudianteId))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override

@@ -4,7 +4,8 @@ import co.edu.uniquindio.proyecto.domain.entity.Solicitud;
 import co.edu.uniquindio.proyecto.domain.entity.Usuario;
 import co.edu.uniquindio.proyecto.domain.repository.SolicitudRepository;
 import co.edu.uniquindio.proyecto.domain.repository.UsuarioRepository;
-import co.edu.uniquindio.proyecto.domain.valueobject.*;
+import co.edu.uniquindio.proyecto.domain.valueobject.CodigoSolicitud;
+import co.edu.uniquindio.proyecto.domain.valueobject.IdUsuario;
 
 /**
  * Caso de uso para asignar responsable a una solicitud.
@@ -15,25 +16,28 @@ public class AsignarResponsableUseCase {
     private final UsuarioRepository usuarioRepository;
 
     public AsignarResponsableUseCase(SolicitudRepository solicitudRepository,
-                                   UsuarioRepository usuarioRepository) {
+                                     UsuarioRepository usuarioRepository) {
         this.solicitudRepository = solicitudRepository;
         this.usuarioRepository = usuarioRepository;
     }
 
     /**
      * Asigna un funcionario responsable a una solicitud.
+     *
      * @param solicitudId identificador de la solicitud
      * @param funcionarioId identificador del funcionario
      * @return solicitud actualizada
      */
     public Solicitud ejecutar(CodigoSolicitud solicitudId, IdUsuario funcionarioId) {
-        
+
+        // 1. Obtener entidades desde repositorios
         Solicitud solicitud = solicitudRepository.buscarPorCodigo(solicitudId);
         Usuario funcionario = usuarioRepository.buscarPorId(funcionarioId);
 
-        // La asignación de responsable se hace a través de la clasificación
-        solicitud.clasificarSolicitud(solicitud.getTipo(), funcionario.getId());
+        // 2. Delegar comportamiento al dominio
+        solicitud.asignarResponsable(funcionario.getId());
 
+        // 3. Guardar cambios
         return solicitudRepository.guardar(solicitud);
     }
 }

@@ -1,24 +1,22 @@
 package co.edu.uniquindio.proyecto.infrastructure.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * DTO para clasificar una solicitud.
- * Representa la intención de clasificar con tipo específico.
  */
 public record ClasificarSolicitudRequest(
-    
-    @NotBlank(message = "El ID del funcionario es requerido")
-    String funcionarioId,
-    
-    @NotBlank(message = "El tipo de solicitud es requerido")
-    TipoSolicitudDto tipo
+
+        @NotBlank(message = "El ID del funcionario es requerido")
+        String funcionarioId,
+
+        @NotNull(message = "El tipo de solicitud es requerido")
+        TipoSolicitud tipo
+
 ) {
-    
-    /**
-     * Tipos de solicitud para clasificación.
-     */
-    public enum TipoSolicitudDto {
+
+    public enum TipoSolicitud {
         REGISTRO_ASIGNATURA,
         HOMOLOGACION,
         CANCELACION,

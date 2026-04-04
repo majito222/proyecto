@@ -1,7 +1,6 @@
 package co.edu.uniquindio.proyecto.infrastructure.mapper;
 
 import co.edu.uniquindio.proyecto.domain.entity.Solicitud;
-import co.edu.uniquindio.proyecto.domain.valueobject.*;
 import co.edu.uniquindio.proyecto.infrastructure.dto.SolicitudResponse;
 import org.springframework.stereotype.Component;
 
@@ -18,25 +17,24 @@ public class SolicitudMapper {
      */
     public SolicitudResponse toResponse(Solicitud solicitud) {
         return new SolicitudResponse(
-            solicitud.getCodigo().valor(),
-            solicitud.getEstudianteId().valor(),
-            solicitud.getEstudianteNombre(),
-            solicitud.getCanal().name(),
-            solicitud.getTipo().name(),
-            solicitud.getDescripcion().valor(),
-            solicitud.getEstado().name(),
-            solicitud.getPrioridad() != null ? 
-                solicitud.getPrioridad().nivel().name() + " - " + solicitud.getPrioridad().justificacion() : null,
-            solicitud.obtenerHistorial().stream()
-                .map(h -> new SolicitudResponse.HistorialDto(
-                    h.accion(),
-                    h.responsable(),
-                    h.observacion(),
-                    h.fecha()
-                ))
-                .toList(),
-            solicitud.obtenerHistorial().isEmpty() ? null : 
-                solicitud.obtenerHistorial().stream().findFirst().get().fecha()
+                solicitud.getCodigo().valor(),
+                solicitud.getEstudianteId().valor(),
+                solicitud.getEstudianteNombre(),
+                solicitud.getCanal().name(),
+                solicitud.getTipo().name(),
+                solicitud.getDescripcion().valor(),
+                solicitud.getEstado().name(),
+                solicitud.getPrioridad() != null ?
+                        solicitud.getPrioridad().nivel().name() + " - " + solicitud.getPrioridad().justificacion()
+                        : null,
+                solicitud.obtenerHistorial().stream()
+                        .map(h -> new SolicitudResponse.HistorialDto(
+                                h.accion(),
+                                h.responsable(),
+                                h.observacion(),
+                                h.fecha()
+                        ))
+                        .toList()
         );
     }
 
@@ -45,7 +43,7 @@ public class SolicitudMapper {
      */
     public List<SolicitudResponse> toResponseList(List<Solicitud> solicitudes) {
         return solicitudes.stream()
-            .map(this::toResponse)
-            .toList();
+                .map(this::toResponse)
+                .toList();
     }
 }

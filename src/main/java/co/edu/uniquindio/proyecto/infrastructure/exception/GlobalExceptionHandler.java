@@ -1,4 +1,4 @@
-package co.edu.uniquindio.proyecto.infrastructure.controller;
+package co.edu.uniquindio.proyecto.infrastructure.exception;
 
 import co.edu.uniquindio.proyecto.domain.exception.*;
 import co.edu.uniquindio.proyecto.infrastructure.dto.ErrorResponse;

@@ -1,5 +1,4 @@
-﻿package co.edu.uniquindio.proyecto.domain.service;
-
+package co.edu.uniquindio.proyecto.domain.service;
 import co.edu.uniquindio.proyecto.domain.entity.Solicitud;
 import co.edu.uniquindio.proyecto.domain.entity.Usuario;
 import co.edu.uniquindio.proyecto.domain.exception.RolNoAutorizadoException;

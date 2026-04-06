@@ -1,5 +1,4 @@
-﻿package co.edu.uniquindio.proyecto.domain.valueobject;
-
+package co.edu.uniquindio.proyecto.domain.valueobject;
 import java.time.LocalDateTime;
 import java.util.Objects;
 

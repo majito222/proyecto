@@ -25,7 +25,10 @@ public class UsuarioRequestMapper {
     /**
      * Convierte tipo de API a dominio.
      */
-    private TipoUsuario convertirTipo(CrearUsuarioRequest.@NotNull(message = "El tipo de usuario es requerido") @org.jetbrains.annotations.UnknownNullability TipoUsuario tipo) {
+    private TipoUsuario convertirTipo(CrearUsuarioRequest.TipoUsuario tipo) {
+        if (tipo == null) {
+            return null; // O lanza una excepción según tu lógica
+        }
         return TipoUsuario.valueOf(tipo.name());
     }
 

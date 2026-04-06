@@ -32,7 +32,11 @@ public class SolicitudRequestMapper {
     /**
      * Convierte tipo de API a dominio.
      */
-    private TipoSolicitud convertirTipo(CrearSolicitudRequest.TipoSolicitudDto tipo) {
+    /**
+     * Convierte tipo de API a dominio.
+     * Quitamos el "Dto" del final del parámetro.
+     */
+    private TipoSolicitud convertirTipo(CrearSolicitudRequest.TipoSolicitud tipo) {
         return TipoSolicitud.valueOf(tipo.name());
     }
 

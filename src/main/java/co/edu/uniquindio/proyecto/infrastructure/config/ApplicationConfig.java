@@ -135,4 +135,28 @@ public class ApplicationConfig {
             SolicitudRepository solicitudRepository) {
         return new ConsultarSolicitudesPorEstadoUseCase(solicitudRepository);
     }
+
+    @Bean
+    public ListarSolicitudesUseCase listarSolicitudesUseCase(
+            SolicitudRepository solicitudRepository) {
+        return new ListarSolicitudesUseCase(solicitudRepository);
+    }
+
+    @Bean
+    public ConsultarSolicitudPorCodigoUseCase consultarSolicitudPorCodigoUseCase(
+            SolicitudRepository solicitudRepository) {
+        return new ConsultarSolicitudPorCodigoUseCase(solicitudRepository);
+    }
+
+    @Bean
+    public ConsultarUsuarioPorIdUseCase consultarUsuarioPorIdUseCase(
+            UsuarioRepository usuarioRepository) {
+        return new ConsultarUsuarioPorIdUseCase(usuarioRepository);
+    }
+
+    @Bean
+    public ListarUsuariosUseCase listarUsuariosUseCase(
+            UsuarioRepository usuarioRepository) {
+        return new ListarUsuariosUseCase(usuarioRepository);
+    }
 }

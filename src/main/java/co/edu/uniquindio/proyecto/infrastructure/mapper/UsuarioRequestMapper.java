@@ -1,8 +1,7 @@
 package co.edu.uniquindio.proyecto.infrastructure.mapper;
 
+import co.edu.uniquindio.proyecto.application.dto.request.CrearUsuarioRequest;
 import co.edu.uniquindio.proyecto.domain.valueobject.*;
-import co.edu.uniquindio.proyecto.infrastructure.dto.CrearUsuarioRequest;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Component;
 
 /**

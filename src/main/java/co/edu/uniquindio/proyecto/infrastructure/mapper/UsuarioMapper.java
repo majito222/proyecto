@@ -1,8 +1,8 @@
 package co.edu.uniquindio.proyecto.infrastructure.mapper;
 
+import co.edu.uniquindio.proyecto.application.dto.response.UsuarioDetalleResponse;
+import co.edu.uniquindio.proyecto.application.dto.response.UsuarioResumenResponse;
 import co.edu.uniquindio.proyecto.domain.entity.Usuario;
-import co.edu.uniquindio.proyecto.domain.valueobject.*;
-import co.edu.uniquindio.proyecto.infrastructure.dto.UsuarioResponse;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -13,11 +13,8 @@ import java.util.List;
 @Component
 public class UsuarioMapper {
 
-    /**
-     * Convierte una entidad Usuario a UsuarioResponse.
-     */
-    public UsuarioResponse toResponse(Usuario usuario) {
-        return new UsuarioResponse(
+    public UsuarioDetalleResponse toDetalleResponse(Usuario usuario) {
+        return new UsuarioDetalleResponse(
             usuario.getId().valor(),
             usuario.getNombre(),
             usuario.getEmail().valor(),
@@ -26,12 +23,18 @@ public class UsuarioMapper {
         );
     }
 
-    /**
-     * Convierte una lista de usuarios a responses.
-     */
-    public List<UsuarioResponse> toResponseList(List<Usuario> usuarios) {
+    public UsuarioResumenResponse toResumenResponse(Usuario usuario) {
+        return new UsuarioResumenResponse(
+            usuario.getId().valor(),
+            usuario.getNombre(),
+            usuario.getTipo().name(),
+            usuario.estaActivo() ? "ACTIVO" : "INACTIVO"
+        );
+    }
+
+    public List<UsuarioResumenResponse> toResumenResponseList(List<Usuario> usuarios) {
         return usuarios.stream()
-            .map(this::toResponse)
+            .map(this::toResumenResponse)
             .toList();
     }
 }

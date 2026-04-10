@@ -1,9 +1,17 @@
 package co.edu.uniquindio.proyecto.infrastructure.controller;
 
+import co.edu.uniquindio.proyecto.application.dto.request.AsignarResponsableRequest;
+import co.edu.uniquindio.proyecto.application.dto.request.CerrarSolicitudRequest;
+import co.edu.uniquindio.proyecto.application.dto.request.ClasificarSolicitudRequest;
+import co.edu.uniquindio.proyecto.application.dto.request.CrearSolicitudRequest;
+import co.edu.uniquindio.proyecto.application.dto.request.IniciarAtencionRequest;
+import co.edu.uniquindio.proyecto.application.dto.request.MarcarAtendidaRequest;
+import co.edu.uniquindio.proyecto.application.dto.request.PriorizarSolicitudRequest;
+import co.edu.uniquindio.proyecto.application.dto.response.SolicitudDetalleResponse;
+import co.edu.uniquindio.proyecto.application.dto.response.SolicitudResumenResponse;
 import co.edu.uniquindio.proyecto.application.usecase.*;
 import co.edu.uniquindio.proyecto.domain.entity.Solicitud;
 import co.edu.uniquindio.proyecto.domain.valueobject.*;
-import co.edu.uniquindio.proyecto.infrastructure.dto.*;
 import co.edu.uniquindio.proyecto.infrastructure.mapper.SolicitudMapper;
 import co.edu.uniquindio.proyecto.infrastructure.mapper.SolicitudRequestMapper;
 import jakarta.validation.Valid;
@@ -18,7 +26,7 @@ import java.util.List;
  * Controller REST para gestión de solicitudes.
  */
 @RestController
-@RequestMapping("/api/solicitudes")
+@RequestMapping("/api/v1/solicitudes")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class SolicitudController {
@@ -32,11 +40,12 @@ public class SolicitudController {
     private final CerrarSolicitudUseCase cerrarSolicitudUseCase;
     private final ConsultarSolicitudesPorEstadoUseCase consultarSolicitudesPorEstadoUseCase;
     private final ConsultarSolicitudPorCodigoUseCase consultarSolicitudPorCodigoUseCase;
+    private final ListarSolicitudesUseCase listarSolicitudesUseCase;
     private final SolicitudMapper solicitudMapper;
     private final SolicitudRequestMapper solicitudRequestMapper;
 
     @PostMapping
-    public ResponseEntity<SolicitudResponse> crearSolicitud(
+    public ResponseEntity<SolicitudDetalleResponse> crearSolicitud(
             @Valid @RequestBody CrearSolicitudRequest request) {
 
         var datos = solicitudRequestMapper.toDomainData(request);
@@ -51,11 +60,11 @@ public class SolicitudController {
         );
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(solicitudMapper.toResponse(solicitud));
+                .body(solicitudMapper.toDetalleResponse(solicitud));
     }
 
     @PutMapping("/{codigo}/responsable")
-    public ResponseEntity<SolicitudResponse> asignarResponsable(
+    public ResponseEntity<SolicitudDetalleResponse> asignarResponsable(
             @PathVariable String codigo,
             @Valid @RequestBody AsignarResponsableRequest request) {
 
@@ -64,11 +73,11 @@ public class SolicitudController {
                 new IdUsuario(request.funcionarioId())
         );
 
-        return ResponseEntity.ok(solicitudMapper.toResponse(solicitud));
+        return ResponseEntity.ok(solicitudMapper.toDetalleResponse(solicitud));
     }
 
-    @PostMapping("/{codigo}/clasificar")
-    public ResponseEntity<SolicitudResponse> clasificarSolicitud(
+    @PostMapping("/{codigo}/clasificacion")
+    public ResponseEntity<SolicitudDetalleResponse> clasificarSolicitud(
             @PathVariable String codigo,
             @Valid @RequestBody ClasificarSolicitudRequest request) {
 
@@ -78,11 +87,11 @@ public class SolicitudController {
                 TipoSolicitud.valueOf(request.tipo().name())
         );
 
-        return ResponseEntity.ok(solicitudMapper.toResponse(solicitud));
+        return ResponseEntity.ok(solicitudMapper.toDetalleResponse(solicitud));
     }
 
-    @PostMapping("/{codigo}/priorizar")
-    public ResponseEntity<SolicitudResponse> priorizarSolicitud(
+    @PostMapping("/{codigo}/prioridad")
+    public ResponseEntity<SolicitudDetalleResponse> priorizarSolicitud(
             @PathVariable String codigo,
             @Valid @RequestBody PriorizarSolicitudRequest request) {
 
@@ -95,37 +104,37 @@ public class SolicitudController {
                 )
         );
 
-        return ResponseEntity.ok(solicitudMapper.toResponse(solicitud));
+        return ResponseEntity.ok(solicitudMapper.toDetalleResponse(solicitud));
     }
 
-    @PostMapping("/{codigo}/iniciar-atencion")
-    public ResponseEntity<SolicitudResponse> iniciarAtencion(
+    @PostMapping("/{codigo}/atencion/inicio")
+    public ResponseEntity<SolicitudDetalleResponse> iniciarAtencion(
             @PathVariable String codigo,
-            @Valid @RequestBody AsignarResponsableRequest request) {
+            @Valid @RequestBody IniciarAtencionRequest request) {
 
         var solicitud = iniciarAtencionUseCase.ejecutar(
                 new CodigoSolicitud(codigo),
                 new IdUsuario(request.funcionarioId())
         );
 
-        return ResponseEntity.ok(solicitudMapper.toResponse(solicitud));
+        return ResponseEntity.ok(solicitudMapper.toDetalleResponse(solicitud));
     }
 
-    @PostMapping("/{codigo}/marcar-atendida")
-    public ResponseEntity<SolicitudResponse> marcarAtendida(
+    @PostMapping("/{codigo}/atencion/finalizacion")
+    public ResponseEntity<SolicitudDetalleResponse> marcarAtendida(
             @PathVariable String codigo,
-            @Valid @RequestBody AsignarResponsableRequest request) {
+            @Valid @RequestBody MarcarAtendidaRequest request) {
 
         var solicitud = marcarAtendidaUseCase.ejecutar(
                 new CodigoSolicitud(codigo),
                 new IdUsuario(request.funcionarioId())
         );
 
-        return ResponseEntity.ok(solicitudMapper.toResponse(solicitud));
+        return ResponseEntity.ok(solicitudMapper.toDetalleResponse(solicitud));
     }
 
-    @PostMapping("/{codigo}/cerrar")
-    public ResponseEntity<SolicitudResponse> cerrarSolicitud(
+    @PostMapping("/{codigo}/cierre")
+    public ResponseEntity<SolicitudDetalleResponse> cerrarSolicitud(
             @PathVariable String codigo,
             @Valid @RequestBody CerrarSolicitudRequest request) {
 
@@ -135,28 +144,34 @@ public class SolicitudController {
                 request.observacion()
         );
 
-        return ResponseEntity.ok(solicitudMapper.toResponse(solicitud));
+        return ResponseEntity.ok(solicitudMapper.toDetalleResponse(solicitud));
     }
 
     @GetMapping
-    public ResponseEntity<List<SolicitudResponse>> consultarPorEstado(
-            @RequestParam String estado) {
+    public ResponseEntity<List<SolicitudResumenResponse>> consultarPorEstado(
+            @RequestParam(required = false) String estado) {
+
+        if (estado == null || estado.isBlank()) {
+            return ResponseEntity.ok(
+                    solicitudMapper.toResumenResponseList(listarSolicitudesUseCase.ejecutar())
+            );
+        }
 
         EstadoSolicitud estadoEnum = EstadoSolicitud.valueOf(estado.toUpperCase());
 
         List<Solicitud> solicitudes =
                 consultarSolicitudesPorEstadoUseCase.ejecutar(estadoEnum);
 
-        return ResponseEntity.ok(solicitudMapper.toResponseList(solicitudes));
+        return ResponseEntity.ok(solicitudMapper.toResumenResponseList(solicitudes));
     }
 
     @GetMapping("/{codigo}")
-    public ResponseEntity<SolicitudResponse> obtenerPorCodigo(
+    public ResponseEntity<SolicitudDetalleResponse> obtenerPorCodigo(
             @PathVariable String codigo) {
 
         Solicitud solicitud =
                 consultarSolicitudPorCodigoUseCase.ejecutar(new CodigoSolicitud(codigo));
 
-        return ResponseEntity.ok(solicitudMapper.toResponse(solicitud));
+        return ResponseEntity.ok(solicitudMapper.toDetalleResponse(solicitud));
     }
 }

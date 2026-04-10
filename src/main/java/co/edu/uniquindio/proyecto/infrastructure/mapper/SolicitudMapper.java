@@ -1,7 +1,9 @@
 package co.edu.uniquindio.proyecto.infrastructure.mapper;
 
+import co.edu.uniquindio.proyecto.application.dto.response.HistorialResponse;
+import co.edu.uniquindio.proyecto.application.dto.response.SolicitudDetalleResponse;
+import co.edu.uniquindio.proyecto.application.dto.response.SolicitudResumenResponse;
 import co.edu.uniquindio.proyecto.domain.entity.Solicitud;
-import co.edu.uniquindio.proyecto.infrastructure.dto.SolicitudResponse;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -12,11 +14,8 @@ import java.util.List;
 @Component
 public class SolicitudMapper {
 
-    /**
-     * Convierte una entidad Solicitud a SolicitudResponse.
-     */
-    public SolicitudResponse toResponse(Solicitud solicitud) {
-        return new SolicitudResponse(
+    public SolicitudDetalleResponse toDetalleResponse(Solicitud solicitud) {
+        return new SolicitudDetalleResponse(
                 solicitud.getCodigo().valor(),
                 solicitud.getEstudianteId().valor(),
                 solicitud.getEstudianteNombre(),
@@ -28,7 +27,7 @@ public class SolicitudMapper {
                         solicitud.getPrioridad().nivel().name() + " - " + solicitud.getPrioridad().justificacion()
                         : null,
                 solicitud.obtenerHistorial().stream()
-                        .map(h -> new SolicitudResponse.HistorialDto(
+                        .map(h -> new HistorialResponse(
                                 h.accion(),
                                 h.responsable(),
                                 h.observacion(),
@@ -38,12 +37,20 @@ public class SolicitudMapper {
         );
     }
 
-    /**
-     * Convierte una lista de solicitudes a responses.
-     */
-    public List<SolicitudResponse> toResponseList(List<Solicitud> solicitudes) {
+    public SolicitudResumenResponse toResumenResponse(Solicitud solicitud) {
+        return new SolicitudResumenResponse(
+                solicitud.getCodigo().valor(),
+                solicitud.getEstudianteId().valor(),
+                solicitud.getEstudianteNombre(),
+                solicitud.getTipo().name(),
+                solicitud.getEstado().name(),
+                solicitud.getPrioridad() != null ? solicitud.getPrioridad().nivel().name() : null
+        );
+    }
+
+    public List<SolicitudResumenResponse> toResumenResponseList(List<Solicitud> solicitudes) {
         return solicitudes.stream()
-                .map(this::toResponse)
+                .map(this::toResumenResponse)
                 .toList();
     }
 }

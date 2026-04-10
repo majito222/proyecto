@@ -1,7 +1,7 @@
 package co.edu.uniquindio.proyecto.infrastructure.exception;
 
 import co.edu.uniquindio.proyecto.domain.exception.*;
-import co.edu.uniquindio.proyecto.infrastructure.dto.ErrorResponse;
+import co.edu.uniquindio.proyecto.application.dto.response.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

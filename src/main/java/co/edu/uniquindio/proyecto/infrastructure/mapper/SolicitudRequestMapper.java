@@ -1,7 +1,7 @@
 package co.edu.uniquindio.proyecto.infrastructure.mapper;
 
+import co.edu.uniquindio.proyecto.application.dto.request.CrearSolicitudRequest;
 import co.edu.uniquindio.proyecto.domain.valueobject.*;
-import co.edu.uniquindio.proyecto.infrastructure.dto.CrearSolicitudRequest;
 import org.springframework.stereotype.Component;
 
 /**

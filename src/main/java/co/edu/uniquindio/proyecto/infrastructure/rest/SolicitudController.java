@@ -1,4 +1,4 @@
-package co.edu.uniquindio.proyecto.infrastructure.controller;
+package co.edu.uniquindio.proyecto.infrastructure.rest;
 
 import co.edu.uniquindio.proyecto.application.dto.request.AsignarResponsableRequest;
 import co.edu.uniquindio.proyecto.application.dto.request.CerrarSolicitudRequest;
@@ -7,28 +7,53 @@ import co.edu.uniquindio.proyecto.application.dto.request.CrearSolicitudRequest;
 import co.edu.uniquindio.proyecto.application.dto.request.IniciarAtencionRequest;
 import co.edu.uniquindio.proyecto.application.dto.request.MarcarAtendidaRequest;
 import co.edu.uniquindio.proyecto.application.dto.request.PriorizarSolicitudRequest;
+import co.edu.uniquindio.proyecto.application.dto.response.ErrorResponse;
 import co.edu.uniquindio.proyecto.application.dto.response.SolicitudDetalleResponse;
 import co.edu.uniquindio.proyecto.application.dto.response.SolicitudResumenResponse;
-import co.edu.uniquindio.proyecto.application.usecase.*;
-import co.edu.uniquindio.proyecto.domain.entity.Solicitud;
-import co.edu.uniquindio.proyecto.domain.valueobject.*;
+import co.edu.uniquindio.proyecto.application.usecase.AsignarResponsableUseCase;
+import co.edu.uniquindio.proyecto.application.usecase.CerrarSolicitudUseCase;
+import co.edu.uniquindio.proyecto.application.usecase.ClasificarSolicitudUseCase;
+import co.edu.uniquindio.proyecto.application.usecase.ConsultarSolicitudPorCodigoUseCase;
+import co.edu.uniquindio.proyecto.application.usecase.ConsultarSolicitudesUseCase;
+import co.edu.uniquindio.proyecto.application.usecase.CrearSolicitudUseCase;
+import co.edu.uniquindio.proyecto.application.usecase.IniciarAtencionUseCase;
+import co.edu.uniquindio.proyecto.application.usecase.MarcarAtendidaUseCase;
+import co.edu.uniquindio.proyecto.application.usecase.PriorizarSolicitudUseCase;
+import co.edu.uniquindio.proyecto.domain.valueobject.CodigoSolicitud;
+import co.edu.uniquindio.proyecto.domain.valueobject.IdUsuario;
+import co.edu.uniquindio.proyecto.domain.valueobject.PrioridadSolicitud;
+import co.edu.uniquindio.proyecto.domain.valueobject.TipoSolicitud;
 import co.edu.uniquindio.proyecto.infrastructure.mapper.SolicitudMapper;
 import co.edu.uniquindio.proyecto.infrastructure.mapper.SolicitudRequestMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
-/**
- * Controller REST para gestión de solicitudes.
- */
 @RestController
 @RequestMapping("/api/v1/solicitudes")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
+@Tag(name = "Solicitudes", description = "Operaciones REST del agregado Solicitud")
 public class SolicitudController {
 
     private final IniciarAtencionUseCase iniciarAtencionUseCase;
@@ -38,32 +63,41 @@ public class SolicitudController {
     private final CrearSolicitudUseCase crearSolicitudUseCase;
     private final AsignarResponsableUseCase asignarResponsableUseCase;
     private final CerrarSolicitudUseCase cerrarSolicitudUseCase;
-    private final ConsultarSolicitudesPorEstadoUseCase consultarSolicitudesPorEstadoUseCase;
+    private final ConsultarSolicitudesUseCase consultarSolicitudesUseCase;
     private final ConsultarSolicitudPorCodigoUseCase consultarSolicitudPorCodigoUseCase;
-    private final ListarSolicitudesUseCase listarSolicitudesUseCase;
     private final SolicitudMapper solicitudMapper;
     private final SolicitudRequestMapper solicitudRequestMapper;
 
     @PostMapping
+    @Operation(summary = "Crear solicitud")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Solicitud creada"),
+            @ApiResponse(responseCode = "400", description = "Datos invalidos",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
     public ResponseEntity<SolicitudDetalleResponse> crearSolicitud(
             @Valid @RequestBody CrearSolicitudRequest request) {
 
         var datos = solicitudRequestMapper.toDomainData(request);
-        CodigoSolicitud codigo = CodigoSolicitud.generar();
-
         var solicitud = crearSolicitudUseCase.ejecutar(
                 datos.estudianteId(),
-                codigo,
                 datos.canal(),
                 datos.tipo(),
                 datos.descripcion()
         );
 
-        return ResponseEntity.status(HttpStatus.CREATED)
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{codigo}")
+                .buildAndExpand(solicitud.getCodigo().valor())
+                .toUri();
+
+        return ResponseEntity.created(location)
                 .body(solicitudMapper.toDetalleResponse(solicitud));
     }
 
     @PutMapping("/{codigo}/responsable")
+    @Operation(summary = "Asignar responsable")
     public ResponseEntity<SolicitudDetalleResponse> asignarResponsable(
             @PathVariable String codigo,
             @Valid @RequestBody AsignarResponsableRequest request) {
@@ -77,6 +111,7 @@ public class SolicitudController {
     }
 
     @PostMapping("/{codigo}/clasificacion")
+    @Operation(summary = "Clasificar solicitud")
     public ResponseEntity<SolicitudDetalleResponse> clasificarSolicitud(
             @PathVariable String codigo,
             @Valid @RequestBody ClasificarSolicitudRequest request) {
@@ -91,6 +126,7 @@ public class SolicitudController {
     }
 
     @PostMapping("/{codigo}/prioridad")
+    @Operation(summary = "Priorizar solicitud")
     public ResponseEntity<SolicitudDetalleResponse> priorizarSolicitud(
             @PathVariable String codigo,
             @Valid @RequestBody PriorizarSolicitudRequest request) {
@@ -108,6 +144,7 @@ public class SolicitudController {
     }
 
     @PostMapping("/{codigo}/atencion/inicio")
+    @Operation(summary = "Iniciar atencion")
     public ResponseEntity<SolicitudDetalleResponse> iniciarAtencion(
             @PathVariable String codigo,
             @Valid @RequestBody IniciarAtencionRequest request) {
@@ -121,6 +158,7 @@ public class SolicitudController {
     }
 
     @PostMapping("/{codigo}/atencion/finalizacion")
+    @Operation(summary = "Finalizar atencion")
     public ResponseEntity<SolicitudDetalleResponse> marcarAtendida(
             @PathVariable String codigo,
             @Valid @RequestBody MarcarAtendidaRequest request) {
@@ -134,6 +172,7 @@ public class SolicitudController {
     }
 
     @PostMapping("/{codigo}/cierre")
+    @Operation(summary = "Cerrar solicitud")
     public ResponseEntity<SolicitudDetalleResponse> cerrarSolicitud(
             @PathVariable String codigo,
             @Valid @RequestBody CerrarSolicitudRequest request) {
@@ -148,28 +187,20 @@ public class SolicitudController {
     }
 
     @GetMapping
-    public ResponseEntity<List<SolicitudResumenResponse>> consultarPorEstado(
+    @Operation(summary = "Consultar solicitudes")
+    public ResponseEntity<List<SolicitudResumenResponse>> consultar(
             @RequestParam(required = false) String estado) {
-
-        if (estado == null || estado.isBlank()) {
-            return ResponseEntity.ok(
-                    solicitudMapper.toResumenResponseList(listarSolicitudesUseCase.ejecutar())
-            );
-        }
-
-        EstadoSolicitud estadoEnum = EstadoSolicitud.valueOf(estado.toUpperCase());
-
-        List<Solicitud> solicitudes =
-                consultarSolicitudesPorEstadoUseCase.ejecutar(estadoEnum);
-
-        return ResponseEntity.ok(solicitudMapper.toResumenResponseList(solicitudes));
+        return ResponseEntity.ok(
+                solicitudMapper.toResumenResponseList(consultarSolicitudesUseCase.ejecutar(estado))
+        );
     }
 
     @GetMapping("/{codigo}")
+    @Operation(summary = "Consultar solicitud por codigo")
     public ResponseEntity<SolicitudDetalleResponse> obtenerPorCodigo(
             @PathVariable String codigo) {
 
-        Solicitud solicitud =
+        var solicitud =
                 consultarSolicitudPorCodigoUseCase.ejecutar(new CodigoSolicitud(codigo));
 
         return ResponseEntity.ok(solicitudMapper.toDetalleResponse(solicitud));

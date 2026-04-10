@@ -1,0 +1,147 @@
+package co.edu.uniquindio.proyecto.infrastructure.rest;
+
+import co.edu.uniquindio.proyecto.application.dto.response.SolicitudDetalleResponse;
+import co.edu.uniquindio.proyecto.application.usecase.AsignarResponsableUseCase;
+import co.edu.uniquindio.proyecto.application.usecase.CerrarSolicitudUseCase;
+import co.edu.uniquindio.proyecto.application.usecase.ClasificarSolicitudUseCase;
+import co.edu.uniquindio.proyecto.application.usecase.ConsultarSolicitudPorCodigoUseCase;
+import co.edu.uniquindio.proyecto.application.usecase.ConsultarSolicitudesUseCase;
+import co.edu.uniquindio.proyecto.application.usecase.CrearSolicitudUseCase;
+import co.edu.uniquindio.proyecto.application.usecase.IniciarAtencionUseCase;
+import co.edu.uniquindio.proyecto.application.usecase.MarcarAtendidaUseCase;
+import co.edu.uniquindio.proyecto.application.usecase.PriorizarSolicitudUseCase;
+import co.edu.uniquindio.proyecto.domain.entity.Solicitud;
+import co.edu.uniquindio.proyecto.domain.valueobject.CodigoSolicitud;
+import co.edu.uniquindio.proyecto.domain.valueobject.DescripcionSolicitud;
+import co.edu.uniquindio.proyecto.domain.valueobject.IdUsuario;
+import co.edu.uniquindio.proyecto.domain.valueobject.TipoCanal;
+import co.edu.uniquindio.proyecto.domain.valueobject.TipoSolicitud;
+import co.edu.uniquindio.proyecto.infrastructure.exception.GlobalExceptionHandler;
+import co.edu.uniquindio.proyecto.infrastructure.mapper.SolicitudMapper;
+import co.edu.uniquindio.proyecto.infrastructure.mapper.SolicitudRequestMapper;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@WebMvcTest(SolicitudController.class)
+@Import(GlobalExceptionHandler.class)
+class SolicitudControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockitoBean
+    private IniciarAtencionUseCase iniciarAtencionUseCase;
+
+    @MockitoBean
+    private MarcarAtendidaUseCase marcarAtendidaUseCase;
+
+    @MockitoBean
+    private ClasificarSolicitudUseCase clasificarSolicitudUseCase;
+
+    @MockitoBean
+    private PriorizarSolicitudUseCase priorizarSolicitudUseCase;
+
+    @MockitoBean
+    private CrearSolicitudUseCase crearSolicitudUseCase;
+
+    @MockitoBean
+    private AsignarResponsableUseCase asignarResponsableUseCase;
+
+    @MockitoBean
+    private CerrarSolicitudUseCase cerrarSolicitudUseCase;
+
+    @MockitoBean
+    private ConsultarSolicitudesUseCase consultarSolicitudesUseCase;
+
+    @MockitoBean
+    private ConsultarSolicitudPorCodigoUseCase consultarSolicitudPorCodigoUseCase;
+
+    @MockitoBean
+    private SolicitudMapper solicitudMapper;
+
+    @MockitoBean
+    private SolicitudRequestMapper solicitudRequestMapper;
+
+    @Test
+    void crearSolicitudDebeRetornarCreatedConLocation() throws Exception {
+        var codigo = new CodigoSolicitud("SOL-001");
+        var estudianteId = new IdUsuario("123456");
+        var descripcion = new DescripcionSolicitud(
+                "Necesito apoyo con una solicitud academica del semestre actual."
+        );
+        var solicitud = Solicitud.crear(
+                codigo,
+                estudianteId,
+                "Ana Perez",
+                TipoCanal.CSU,
+                TipoSolicitud.CONSULTA_ACADEMICA,
+                descripcion
+        );
+        var requestData = new SolicitudRequestMapper.SolicitudData(
+                estudianteId,
+                TipoCanal.CSU,
+                TipoSolicitud.CONSULTA_ACADEMICA,
+                descripcion
+        );
+        var response = new SolicitudDetalleResponse(
+                "SOL-001",
+                "123456",
+                "Ana Perez",
+                "CSU",
+                "CONSULTA_ACADEMICA",
+                "Necesito apoyo con una solicitud academica del semestre actual.",
+                "REGISTRADA",
+                null,
+                List.of()
+        );
+
+        when(solicitudRequestMapper.toDomainData(any())).thenReturn(requestData);
+        when(crearSolicitudUseCase.ejecutar(
+                eq(estudianteId),
+                eq(TipoCanal.CSU),
+                eq(TipoSolicitud.CONSULTA_ACADEMICA),
+                eq(descripcion)
+        )).thenReturn(solicitud);
+        when(solicitudMapper.toDetalleResponse(solicitud)).thenReturn(response);
+
+        mockMvc.perform(post("/api/v1/solicitudes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "estudianteId": "123456",
+                                  "canal": "CSU",
+                                  "tipo": "CONSULTA_ACADEMICA",
+                                  "descripcion": "Necesito apoyo con una solicitud academica del semestre actual."
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(header().string("Location", "http://localhost/api/v1/solicitudes/SOL-001"));
+    }
+
+    @Test
+    void crearSolicitudConPayloadInvalidoDebeRetornarBadRequest() throws Exception {
+        mockMvc.perform(post("/api/v1/solicitudes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "estudianteId": "",
+                                  "descripcion": "corta"
+                                }
+                                """))
+                .andExpect(status().isBadRequest());
+    }
+}

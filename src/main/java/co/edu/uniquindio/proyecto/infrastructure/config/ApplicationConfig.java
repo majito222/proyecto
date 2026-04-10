@@ -149,6 +149,16 @@ public class ApplicationConfig {
     }
 
     @Bean
+    public ConsultarSolicitudesUseCase consultarSolicitudesUseCase(
+            ListarSolicitudesUseCase listarSolicitudesUseCase,
+            ConsultarSolicitudesPorEstadoUseCase consultarSolicitudesPorEstadoUseCase) {
+        return new ConsultarSolicitudesUseCase(
+                listarSolicitudesUseCase,
+                consultarSolicitudesPorEstadoUseCase
+        );
+    }
+
+    @Bean
     public ConsultarUsuarioPorIdUseCase consultarUsuarioPorIdUseCase(
             UsuarioRepository usuarioRepository) {
         return new ConsultarUsuarioPorIdUseCase(usuarioRepository);

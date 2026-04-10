@@ -32,4 +32,8 @@ public class CrearUsuarioUseCase {
 
         return usuarioRepository.guardar(usuario);
     }
+
+    public Usuario ejecutar(String nombre, Email email, TipoUsuario tipo) {
+        return ejecutar(IdUsuario.generar(), nombre, email, tipo);
+    }
 }

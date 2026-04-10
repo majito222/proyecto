@@ -39,4 +39,11 @@ public class CrearSolicitudUseCase {
 
         return solicitudRepository.guardar(solicitud);
     }
+
+    public Solicitud ejecutar(IdUsuario estudianteId,
+                              TipoCanal canal,
+                              TipoSolicitud tipo,
+                              DescripcionSolicitud descripcion) {
+        return ejecutar(estudianteId, CodigoSolicitud.generar(), canal, tipo, descripcion);
+    }
 }

@@ -1,15 +1,15 @@
 package co.edu.uniquindio.proyecto.infrastructure.rest;
 
 import co.edu.uniquindio.proyecto.application.dto.response.SolicitudDetalleResponse;
-import co.edu.uniquindio.proyecto.application.usecase.AsignarResponsableUseCase;
-import co.edu.uniquindio.proyecto.application.usecase.CerrarSolicitudUseCase;
-import co.edu.uniquindio.proyecto.application.usecase.ClasificarSolicitudUseCase;
-import co.edu.uniquindio.proyecto.application.usecase.ConsultarSolicitudPorCodigoUseCase;
-import co.edu.uniquindio.proyecto.application.usecase.ConsultarSolicitudesUseCase;
-import co.edu.uniquindio.proyecto.application.usecase.CrearSolicitudUseCase;
-import co.edu.uniquindio.proyecto.application.usecase.IniciarAtencionUseCase;
-import co.edu.uniquindio.proyecto.application.usecase.MarcarAtendidaUseCase;
-import co.edu.uniquindio.proyecto.application.usecase.PriorizarSolicitudUseCase;
+import co.edu.uniquindio.proyecto.application.AsignarResponsableUseCase;
+import co.edu.uniquindio.proyecto.application.CerrarSolicitudUseCase;
+import co.edu.uniquindio.proyecto.application.ClasificarSolicitudUseCase;
+import co.edu.uniquindio.proyecto.application.ConsultarSolicitudPorCodigoUseCase;
+import co.edu.uniquindio.proyecto.application.ConsultarSolicitudesUseCase;
+import co.edu.uniquindio.proyecto.application.CrearSolicitudUseCase;
+import co.edu.uniquindio.proyecto.application.IniciarAtencionUseCase;
+import co.edu.uniquindio.proyecto.application.MarcarAtendidaUseCase;
+import co.edu.uniquindio.proyecto.application.PriorizarSolicitudUseCase;
 import co.edu.uniquindio.proyecto.domain.entity.Solicitud;
 import co.edu.uniquindio.proyecto.domain.valueobject.CodigoSolicitud;
 import co.edu.uniquindio.proyecto.domain.valueobject.DescripcionSolicitud;

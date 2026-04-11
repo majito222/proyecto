@@ -29,7 +29,7 @@ public interface SolicitudRepository {
 
     /**
      * Busca solicitudes por estado.
-     * param estado estado a filtrar
+     * @param estado estado a filtrar
      * @return lista de solicitudes en ese estado
      */
     List<Solicitud> buscarPorEstado(EstadoSolicitud estado);
@@ -52,4 +52,10 @@ public interface SolicitudRepository {
      * @param codigo código de la solicitud a eliminar
      */
     void eliminarPorCodigo(CodigoSolicitud codigo);
+
+    // Spring Data - MANTENER todos tus métodos originales
+    Solicitud save(Solicitud solicitud);
+    Optional<Solicitud> findById(String id);
+    Optional<Solicitud> findByCodigo(CodigoSolicitud codigo);
+    List<Solicitud> findByEstado(EstadoSolicitud estado);
 }

@@ -52,4 +52,8 @@ public interface UsuarioRepository {
      * @param id identificador del usuario a eliminar
      */
     void eliminarPorId(IdUsuario id);
+
+    //  Spring Data - MANTENER todos tus métodos originales
+    Optional<Usuario> findById(IdUsuario id);
+    Usuario save(Usuario usuario);
 }

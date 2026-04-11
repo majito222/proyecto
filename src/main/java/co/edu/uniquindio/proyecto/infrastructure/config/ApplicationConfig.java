@@ -1,6 +1,6 @@
 package co.edu.uniquindio.proyecto.infrastructure.config;
 
-import co.edu.uniquindio.proyecto.application.usecase.*;
+import co.edu.uniquindio.proyecto.application.*;
 import co.edu.uniquindio.proyecto.domain.repository.SolicitudRepository;
 import co.edu.uniquindio.proyecto.domain.repository.UsuarioRepository;
 import co.edu.uniquindio.proyecto.domain.service.UsuarioService;

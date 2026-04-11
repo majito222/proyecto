@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.Optional;
 
 /**
  * Implementación en memoria del repositorio de solicitudes.
@@ -56,5 +57,30 @@ public class SolicitudRepositoryEnMemoria implements SolicitudRepository {
     @Override
     public void eliminarPorCodigo(CodigoSolicitud codigo) {
         solicitudes.remove(codigo.valor());
+    }
+
+    //  para Spring Data
+    @Override
+    public Solicitud save(Solicitud solicitud) {
+        return guardar(solicitud);  // Reutiliza tu método existente
+    }
+
+    @Override
+    public Optional<Solicitud> findById(String id) {
+        return Optional.ofNullable(solicitudes.get(id));
+    }
+
+    @Override
+    public Optional<Solicitud> findByCodigo(CodigoSolicitud codigo) {
+        try {
+            return Optional.of(buscarPorCodigo(codigo));  // Reutiliza tu método
+        } catch (NoSuchElementException e) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public List<Solicitud> findByEstado(EstadoSolicitud estado) {
+        return buscarPorEstado(estado);  // Reutiliza tu método existente
     }
 }

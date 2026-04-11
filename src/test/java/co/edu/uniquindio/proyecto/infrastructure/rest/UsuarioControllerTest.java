@@ -1,9 +1,9 @@
 package co.edu.uniquindio.proyecto.infrastructure.rest;
 
 import co.edu.uniquindio.proyecto.application.dto.response.UsuarioDetalleResponse;
-import co.edu.uniquindio.proyecto.application.usecase.ConsultarUsuarioPorIdUseCase;
-import co.edu.uniquindio.proyecto.application.usecase.CrearUsuarioUseCase;
-import co.edu.uniquindio.proyecto.application.usecase.ListarUsuariosUseCase;
+import co.edu.uniquindio.proyecto.application.ConsultarUsuarioPorIdUseCase;
+import co.edu.uniquindio.proyecto.application.CrearUsuarioUseCase;
+import co.edu.uniquindio.proyecto.application.ListarUsuariosUseCase;
 import co.edu.uniquindio.proyecto.domain.entity.Usuario;
 import co.edu.uniquindio.proyecto.domain.valueobject.Email;
 import co.edu.uniquindio.proyecto.domain.valueobject.IdUsuario;

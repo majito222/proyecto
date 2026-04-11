@@ -1,24 +1,23 @@
-package co.edu.uniquindio.proyecto.application.usecase;
+package co.edu.uniquindio.proyecto.application;
 
 import co.edu.uniquindio.proyecto.domain.entity.Solicitud;
 import co.edu.uniquindio.proyecto.domain.entity.Usuario;
 import co.edu.uniquindio.proyecto.domain.repository.SolicitudRepository;
 import co.edu.uniquindio.proyecto.domain.repository.UsuarioRepository;
 import co.edu.uniquindio.proyecto.domain.valueobject.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Caso de uso para cerrar una solicitud.
  */
+@Service
+@RequiredArgsConstructor
 public class CerrarSolicitudUseCase {
 
     private final SolicitudRepository solicitudRepository;
     private final UsuarioRepository usuarioRepository;
-
-    public CerrarSolicitudUseCase(SolicitudRepository solicitudRepository,
-                                 UsuarioRepository usuarioRepository) {
-        this.solicitudRepository = solicitudRepository;
-        this.usuarioRepository = usuarioRepository;
-    }
 
     /**
      * Cierra una solicitud con observación.
@@ -27,15 +26,16 @@ public class CerrarSolicitudUseCase {
      * @param observacion observación de cierre
      * @return solicitud cerrada
      */
-    public Solicitud ejecutar(CodigoSolicitud solicitudId, 
-                            IdUsuario administradorId, 
-                            String observacion) {
+    @Transactional
+    public Solicitud ejecutar(CodigoSolicitud solicitudId,
+                              IdUsuario administradorId,
+                              String observacion) {
 
-        Solicitud solicitud = solicitudRepository.buscarPorCodigo(solicitudId);
-        Usuario administrador = usuarioRepository.buscarPorId(administradorId);
+        Solicitud solicitud = solicitudRepository.buscarPorCodigo(solicitudId);  // ✅ TU ESTILO
+        Usuario administrador = usuarioRepository.buscarPorId(administradorId);  // ✅ TU ESTILO
 
         solicitud.cerrarSolicitud(administrador.getId(), observacion);
 
-        return solicitudRepository.guardar(solicitud);
+        return solicitudRepository.save(solicitud);
     }
 }

@@ -6,6 +6,7 @@ import co.edu.uniquindio.proyecto.domain.valueobject.Email;
 import co.edu.uniquindio.proyecto.domain.valueobject.IdUsuario;
 import co.edu.uniquindio.proyecto.domain.valueobject.TipoUsuario;
 import org.springframework.stereotype.Repository;
+import java.util.Optional;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -57,4 +58,19 @@ public class UsuarioRepositoryEnMemoria implements UsuarioRepository {
     public void eliminarPorId(IdUsuario id) {
         usuarios.remove(id.valor());
     }
+    //  MÉTODOS SPRING DATA
+    @Override
+    public Usuario save(Usuario usuario) {
+        return guardar(usuario);  // Reutiliza tu método
+    }
+
+    @Override
+    public Optional<Usuario> findById(IdUsuario id) {
+        try {
+            return Optional.of(buscarPorId(id));
+        } catch (NoSuchElementException e) {
+            return Optional.empty();
+        }
+    }
 }
+

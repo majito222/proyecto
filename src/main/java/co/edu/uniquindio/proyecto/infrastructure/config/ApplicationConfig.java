@@ -4,10 +4,14 @@ import co.edu.uniquindio.proyecto.application.*;
 import co.edu.uniquindio.proyecto.domain.repository.SolicitudRepository;
 import co.edu.uniquindio.proyecto.domain.repository.UsuarioRepository;
 import co.edu.uniquindio.proyecto.domain.service.UsuarioService;
-import co.edu.uniquindio.proyecto.infrastructure.repository.SolicitudRepositoryEnMemoria;
-import co.edu.uniquindio.proyecto.infrastructure.repository.UsuarioRepositoryEnMemoria;
+import co.edu.uniquindio.proyecto.infrastructure.jpa.SolicitudJpaRepository;  // ← NUEVO
+import co.edu.uniquindio.proyecto.infrastructure.jpa.SolicitudJpaRepositoryImpl;
+import co.edu.uniquindio.proyecto.infrastructure.jpa.SolicitudPersistenceMapper; // ← NUEVO
+import co.edu.uniquindio.proyecto.infrastructure.repository.UsuarioRepositoryEnMemoria; // Temporal
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Primary;
 
 /**
  * Configuración de beans para inyección de dependencias.
@@ -15,17 +19,16 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ApplicationConfig {
 
-    /**
-     * Bean para el repositorio de solicitudes en memoria.
-     */
     @Bean
-    public SolicitudRepository solicitudRepository() {
-        return new SolicitudRepositoryEnMemoria();
+    @Primary
+    public SolicitudRepository solicitudRepository(
+            @Lazy SolicitudJpaRepository jpaDataRepository,        // Spring Data JPA
+            SolicitudPersistenceMapper mapper,               // MapStruct
+            UsuarioRepository usuarioRepository              // Para relaciones
+    ) {
+        return new SolicitudJpaRepositoryImpl(jpaDataRepository, mapper, usuarioRepository);
     }
 
-    /**
-     * Bean para el repositorio de usuarios en memoria.
-     */
     @Bean
     public UsuarioRepository usuarioRepository() {
         return new UsuarioRepositoryEnMemoria();

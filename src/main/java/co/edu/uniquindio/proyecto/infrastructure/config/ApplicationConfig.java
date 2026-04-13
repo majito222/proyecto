@@ -82,6 +82,13 @@ public class ApplicationConfig {
         return new CerrarSolicitudUseCase(solicitudRepository, usuarioRepository);
     }
 
+    @Bean
+    public CancelarSolicitudUseCase cancelarSolicitudUseCase(
+            SolicitudRepository solicitudRepository,
+            UsuarioRepository usuarioRepository) {
+        return new CancelarSolicitudUseCase(solicitudRepository, usuarioRepository);
+    }
+
     /**
      * Bean para el caso de uso crear usuario.
      */

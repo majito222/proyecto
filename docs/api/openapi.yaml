@@ -39,23 +39,23 @@ paths:
     get:
       tags: [Solicitudes]
       summary: Listar solicitudes
-      description: Retorna todas las solicitudes o filtra por estado con `estado`.
+      description: Retorna solicitudes paginadas o filtra por estado con `estado`.
       parameters:
         - in: query
           name: estado
           required: false
           schema:
             type: string
-            enum: [REGISTRADA, CLASIFICADA, EN_ATENCION, ATENDIDA, CERRADA]
+            enum: [REGISTRADA, CLASIFICADA, EN_ATENCION, ATENDIDA, CERRADA, CANCELADA]
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
       responses:
         '200':
           description: Solicitudes consultadas
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/SolicitudResumenResponse'
+                $ref: '#/components/schemas/PaginaSolicitudesResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '500':
@@ -74,6 +74,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SolicitudDetalleResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/v1/solicitudes/{codigo}/historial:
+    get:
+      tags: [Solicitudes]
+      summary: Consultar historial de solicitud
+      description: Retorna el historial cronologico de eventos de una solicitud, incluyendo consultas y cancelaciones con fecha.
+      parameters:
+        - $ref: '#/components/parameters/CodigoSolicitud'
+      responses:
+        '200':
+          description: Historial consultado
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HistorialResponse'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -258,6 +278,34 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalError'
+  /api/v1/solicitudes/{codigo}/cancelacion:
+    post:
+      tags: [Solicitudes]
+      summary: Cancelar solicitud
+      description: Cancela una solicitud y registra el evento en el historial con fecha y observacion.
+      parameters:
+        - $ref: '#/components/parameters/CodigoSolicitud'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelarSolicitudRequest'
+      responses:
+        '200':
+          description: Solicitud cancelada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolicitudDetalleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
   /api/v1/usuarios:
     post:
       tags: [Usuarios]
@@ -283,16 +331,17 @@ paths:
     get:
       tags: [Usuarios]
       summary: Listar usuarios
-      description: Retorna la lista resumida de usuarios registrados.
+      description: Retorna la lista paginada de usuarios registrados.
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
       responses:
         '200':
           description: Usuarios consultados
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UsuarioResumenResponse'
+                $ref: '#/components/schemas/PaginaUsuariosResponse'
         '500':
           $ref: '#/components/responses/InternalError'
   /api/v1/usuarios/{id}:
@@ -344,6 +393,25 @@ components:
       description: Identificador unico del usuario
       schema:
         type: string
+    Page:
+      name: page
+      in: query
+      required: false
+      description: Numero de pagina a consultar, iniciando en 0
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    Size:
+      name: size
+      in: query
+      required: false
+      description: Cantidad de elementos por pagina
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
   responses:
     BadRequest:
       description: Datos invalidos o regla de dominio incumplida
@@ -442,6 +510,16 @@ components:
           type: string
           minLength: 10
           maxLength: 500
+    CancelarSolicitudRequest:
+      type: object
+      required: [responsableId, observacion]
+      properties:
+        responsableId:
+          type: string
+        observacion:
+          type: string
+          minLength: 10
+          maxLength: 500
     CrearUsuarioRequest:
       type: object
       required: [nombre, email, tipo]
@@ -508,6 +586,32 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/HistorialResponse'
+    PaginaSolicitudesResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/SolicitudResumenResponse'
+        page:
+          type: integer
+          example: 0
+        size:
+          type: integer
+          example: 10
+        totalElements:
+          type: integer
+          format: int64
+          example: 57
+        totalPages:
+          type: integer
+          example: 6
+        first:
+          type: boolean
+        last:
+          type: boolean
+        empty:
+          type: boolean
     UsuarioResumenResponse:
       type: object
       properties:
@@ -519,6 +623,32 @@ components:
           type: string
         estado:
           type: string
+    PaginaUsuariosResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/UsuarioResumenResponse'
+        page:
+          type: integer
+          example: 0
+        size:
+          type: integer
+          example: 10
+        totalElements:
+          type: integer
+          format: int64
+          example: 25
+        totalPages:
+          type: integer
+          example: 3
+        first:
+          type: boolean
+        last:
+          type: boolean
+        empty:
+          type: boolean
     UsuarioDetalleResponse:
       type: object
       properties:

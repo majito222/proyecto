@@ -138,6 +138,21 @@ public class Solicitud {
         registrarEvento("Solicitud cerrada por administrador " + administradorId + ". Observacion: " + observacion);
     }
 
+    public void cancelarSolicitud(IdUsuario responsableId, String observacion) {
+
+        if (estado == EstadoSolicitud.CERRADA || estado == EstadoSolicitud.CANCELADA) {
+            throw new TransicionEstadoInvalidaException("No es posible cancelar una solicitud cerrada o cancelada");
+        }
+
+        this.estado = EstadoSolicitud.CANCELADA;
+
+        registrarEvento("Solicitud cancelada", responsableId.valor(), observacion);
+    }
+
+    public void registrarConsulta() {
+        registrarEvento("Solicitud consultada");
+    }
+
     public List<Historial> obtenerHistorial() {
         return List.copyOf(historial);
     }
@@ -181,12 +196,16 @@ public class Solicitud {
     }
 
     private void registrarEvento(String descripcion) {
+        registrarEvento(descripcion, "SISTEMA", "");
+    }
+
+    private void registrarEvento(String descripcion, String responsable, String observacion) {
         LocalDateTime fecha = LocalDateTime.now();
-        Historial evento = new Historial(descripcion, "SISTEMA", "", fecha);
+        Historial evento = new Historial(descripcion, responsable, observacion, fecha);
 
         while (!historial.add(evento)) {
             fecha = fecha.plusNanos(1);
-            evento = new Historial(descripcion, "SISTEMA", "", fecha);
+            evento = new Historial(descripcion, responsable, observacion, fecha);
         }
     }
 

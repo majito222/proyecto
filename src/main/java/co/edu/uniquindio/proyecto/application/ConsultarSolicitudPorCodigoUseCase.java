@@ -16,8 +16,10 @@ public class ConsultarSolicitudPorCodigoUseCase {
 
     private final SolicitudRepository solicitudRepository;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public Solicitud ejecutar(CodigoSolicitud codigo) {
-        return solicitudRepository.buscarPorCodigo(codigo);
+        Solicitud solicitud = solicitudRepository.buscarPorCodigo(codigo);
+        solicitud.registrarConsulta();
+        return solicitudRepository.guardar(solicitud);
     }
 }

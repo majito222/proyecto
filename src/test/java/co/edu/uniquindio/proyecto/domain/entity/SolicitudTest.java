@@ -2,6 +2,7 @@ package co.edu.uniquindio.proyecto.domain.entity;
 
 import co.edu.uniquindio.proyecto.domain.valueobject.*;
 import co.edu.uniquindio.proyecto.domain.service.SolicitudService;
+import co.edu.uniquindio.proyecto.domain.exception.TransicionEstadoInvalidaException;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -35,7 +36,7 @@ class SolicitudTest {
         Solicitud solicitud = solicitudBase();
         solicitud.clasificarSolicitud(TipoSolicitud.HOMOLOGACION, idAdministrador());
 
-        assertThrows(IllegalStateException.class, () ->
+        assertThrows(TransicionEstadoInvalidaException.class, () ->
                 solicitud.clasificarSolicitud(TipoSolicitud.CANCELACION, idAdministrador()));
     }
 
@@ -55,7 +56,7 @@ class SolicitudTest {
         // Regla: no se puede priorizar una solicitud sin clasificar.
         Solicitud solicitud = solicitudBase();
 
-        assertThrows(IllegalStateException.class, () ->
+        assertThrows(TransicionEstadoInvalidaException.class, () ->
                 solicitud.asignarPrioridad(prioridadAlta(), idAdministrador()));
     }
 
@@ -75,7 +76,7 @@ class SolicitudTest {
         // Regla: no se puede iniciar atencion si no esta CLASIFICADA.
         Solicitud solicitud = solicitudBase();
 
-        assertThrows(IllegalStateException.class, () ->
+        assertThrows(TransicionEstadoInvalidaException.class, () ->
                 solicitud.iniciarAtencion(idFuncionario()));
     }
 
@@ -96,7 +97,7 @@ class SolicitudTest {
         // Regla: no se puede marcar atendida si no esta EN_ATENCION.
         Solicitud solicitud = solicitudBase();
 
-        assertThrows(IllegalStateException.class, () ->
+        assertThrows(TransicionEstadoInvalidaException.class, () ->
                 solicitud.marcarAtendida(idFuncionario()));
     }
 
@@ -118,8 +119,35 @@ class SolicitudTest {
         // Regla: no se puede cerrar si no esta ATENDIDA.
         Solicitud solicitud = solicitudBase();
 
-        assertThrows(IllegalStateException.class, () ->
+        assertThrows(TransicionEstadoInvalidaException.class, () ->
                 solicitud.cerrarSolicitud(idAdministrador(), "Cierre invalido"));
+    }
+
+    @Test
+    void registrarConsultaDebeAgregarEventoConFecha() {
+        Solicitud solicitud = solicitudBase();
+
+        solicitud.registrarConsulta();
+
+        assertEquals(2, solicitud.obtenerHistorial().size());
+        Historial evento = solicitud.obtenerHistorial().get(1);
+        assertEquals("Solicitud consultada", evento.accion());
+        assertNotNull(evento.fecha());
+    }
+
+    @Test
+    void cancelarSolicitudDebeCambiarEstadoYRegistrarEvento() {
+        Solicitud solicitud = solicitudBase();
+
+        solicitud.cancelarSolicitud(idAdministrador(), "Cancelada por solicitud del estudiante");
+
+        assertEquals(EstadoSolicitud.CANCELADA, solicitud.getEstado());
+        assertEquals(2, solicitud.obtenerHistorial().size());
+        Historial evento = solicitud.obtenerHistorial().get(1);
+        assertEquals("Solicitud cancelada", evento.accion());
+        assertEquals("654321", evento.responsable());
+        assertEquals("Cancelada por solicitud del estudiante", evento.observacion());
+        assertNotNull(evento.fecha());
     }
 
     @Test

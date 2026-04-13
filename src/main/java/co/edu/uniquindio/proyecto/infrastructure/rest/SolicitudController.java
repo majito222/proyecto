@@ -1,6 +1,7 @@
 package co.edu.uniquindio.proyecto.infrastructure.rest;
 
 import co.edu.uniquindio.proyecto.application.dto.request.AsignarResponsableRequest;
+import co.edu.uniquindio.proyecto.application.dto.request.CancelarSolicitudRequest;
 import co.edu.uniquindio.proyecto.application.dto.request.CerrarSolicitudRequest;
 import co.edu.uniquindio.proyecto.application.dto.request.ClasificarSolicitudRequest;
 import co.edu.uniquindio.proyecto.application.dto.request.CrearSolicitudRequest;
@@ -8,9 +9,11 @@ import co.edu.uniquindio.proyecto.application.dto.request.IniciarAtencionRequest
 import co.edu.uniquindio.proyecto.application.dto.request.MarcarAtendidaRequest;
 import co.edu.uniquindio.proyecto.application.dto.request.PriorizarSolicitudRequest;
 import co.edu.uniquindio.proyecto.application.dto.response.ErrorResponse;
+import co.edu.uniquindio.proyecto.application.dto.response.HistorialResponse;
 import co.edu.uniquindio.proyecto.application.dto.response.SolicitudDetalleResponse;
 import co.edu.uniquindio.proyecto.application.dto.response.SolicitudResumenResponse;
 import co.edu.uniquindio.proyecto.application.AsignarResponsableUseCase;
+import co.edu.uniquindio.proyecto.application.CancelarSolicitudUseCase;
 import co.edu.uniquindio.proyecto.application.CerrarSolicitudUseCase;
 import co.edu.uniquindio.proyecto.application.ClasificarSolicitudUseCase;
 import co.edu.uniquindio.proyecto.application.ConsultarSolicitudPorCodigoUseCase;
@@ -62,6 +65,7 @@ public class SolicitudController {
     private final CrearSolicitudUseCase crearSolicitudUseCase;
     private final AsignarResponsableUseCase asignarResponsableUseCase;
     private final CerrarSolicitudUseCase cerrarSolicitudUseCase;
+    private final CancelarSolicitudUseCase cancelarSolicitudUseCase;
     private final ConsultarSolicitudesUseCase consultarSolicitudesUseCase;
     private final ConsultarSolicitudPorCodigoUseCase consultarSolicitudPorCodigoUseCase;
     private final SolicitudMapper solicitudMapper;
@@ -185,6 +189,21 @@ public class SolicitudController {
         return ResponseEntity.ok(solicitudMapper.toDetalleResponse(solicitud));
     }
 
+    @PostMapping("/{codigo}/cancelacion")
+    @Operation(summary = "Cancelar solicitud")
+    public ResponseEntity<SolicitudDetalleResponse> cancelarSolicitud(
+            @PathVariable String codigo,
+            @Valid @RequestBody CancelarSolicitudRequest request) {
+
+        var solicitud = cancelarSolicitudUseCase.ejecutar(
+                new CodigoSolicitud(codigo),
+                new IdUsuario(request.responsableId()),
+                request.observacion()
+        );
+
+        return ResponseEntity.ok(solicitudMapper.toDetalleResponse(solicitud));
+    }
+
     @GetMapping
     @Operation(summary = "Consultar solicitudes")
     public ResponseEntity<List<SolicitudResumenResponse>> consultar(
@@ -203,5 +222,18 @@ public class SolicitudController {
                 consultarSolicitudPorCodigoUseCase.ejecutar(new CodigoSolicitud(codigo));
 
         return ResponseEntity.ok(solicitudMapper.toDetalleResponse(solicitud));
+    }
+
+    @GetMapping("/{codigo}/historial")
+    @Operation(summary = "Consultar historial de solicitud")
+    public ResponseEntity<List<HistorialResponse>> obtenerHistorial(
+            @PathVariable String codigo) {
+
+        var solicitud =
+                consultarSolicitudPorCodigoUseCase.ejecutar(new CodigoSolicitud(codigo));
+
+        return ResponseEntity.ok(
+                solicitudMapper.toHistorialResponseList(solicitud.obtenerHistorial())
+        );
     }
 }

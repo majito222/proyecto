@@ -1,7 +1,9 @@
 package co.edu.uniquindio.proyecto.infrastructure.rest;
 
 import co.edu.uniquindio.proyecto.application.dto.response.SolicitudDetalleResponse;
+import co.edu.uniquindio.proyecto.application.dto.response.HistorialResponse;
 import co.edu.uniquindio.proyecto.application.AsignarResponsableUseCase;
+import co.edu.uniquindio.proyecto.application.CancelarSolicitudUseCase;
 import co.edu.uniquindio.proyecto.application.CerrarSolicitudUseCase;
 import co.edu.uniquindio.proyecto.application.ClasificarSolicitudUseCase;
 import co.edu.uniquindio.proyecto.application.ConsultarSolicitudPorCodigoUseCase;
@@ -27,12 +29,15 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -63,6 +68,9 @@ class SolicitudControllerTest {
 
     @MockitoBean
     private CerrarSolicitudUseCase cerrarSolicitudUseCase;
+
+    @MockitoBean
+    private CancelarSolicitudUseCase cancelarSolicitudUseCase;
 
     @MockitoBean
     private ConsultarSolicitudesUseCase consultarSolicitudesUseCase;
@@ -143,5 +151,36 @@ class SolicitudControllerTest {
                                 }
                                 """))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void consultarHistorialDebeRetornarEventos() throws Exception {
+        var solicitud = Solicitud.crear(
+                new CodigoSolicitud("SOL-001"),
+                new IdUsuario("123456"),
+                "Ana Perez",
+                TipoCanal.CSU,
+                TipoSolicitud.CONSULTA_ACADEMICA,
+                new DescripcionSolicitud("Necesito apoyo con una solicitud academica del semestre actual.")
+        );
+        var historial = List.of(
+                new HistorialResponse(
+                        "Solicitud registrada",
+                        "SISTEMA",
+                        "",
+                        LocalDateTime.of(2026, 4, 13, 10, 0)
+                )
+        );
+
+        when(consultarSolicitudPorCodigoUseCase.ejecutar(eq(new CodigoSolicitud("SOL-001"))))
+                .thenReturn(solicitud);
+        when(solicitudMapper.toHistorialResponseList(solicitud.obtenerHistorial()))
+                .thenReturn(historial);
+
+        mockMvc.perform(get("/api/v1/solicitudes/SOL-001/historial"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].accion").value("Solicitud registrada"))
+                .andExpect(jsonPath("$[0].responsable").value("SISTEMA"))
+                .andExpect(jsonPath("$[0].fecha").value("2026-04-13T10:00:00"));
     }
 }

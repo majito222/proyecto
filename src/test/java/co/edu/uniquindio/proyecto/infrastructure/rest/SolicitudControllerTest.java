@@ -150,7 +150,12 @@ class SolicitudControllerTest {
                                   "descripcion": "corta"
                                 }
                                 """))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.error").value("Bad Request"))
+                .andExpect(jsonPath("$.ruta").value("/api/v1/solicitudes"))
+                .andExpect(jsonPath("$.detalles").isArray());
     }
 
     @Test

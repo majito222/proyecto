@@ -6,6 +6,8 @@ info:
 servers:
   - url: http://localhost:8081
     description: Desarrollo local
+security:
+  - bearerAuth: []
 tags:
   - name: Solicitudes
     description: Operaciones del agregado Solicitud
@@ -367,6 +369,7 @@ paths:
       tags: [Usuarios]
       summary: Health check
       description: Verifica que el adaptador HTTP este disponible.
+      security: []
       responses:
         '200':
           description: Aplicacion disponible
@@ -418,31 +421,42 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: '#/components/schemas/ApiError'
+    Unauthorized:
+      description: Credenciales ausentes, expiradas o invalidas
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
     Forbidden:
       description: El usuario no tiene permisos para ejecutar la operacion
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: '#/components/schemas/ApiError'
     NotFound:
       description: Recurso no encontrado
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: '#/components/schemas/ApiError'
     Conflict:
       description: Estado del recurso incompatible con la operacion
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: '#/components/schemas/ApiError'
     InternalError:
       description: Error interno del servidor
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: '#/components/schemas/ApiError'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     CrearSolicitudRequest:
       type: object
@@ -662,13 +676,38 @@ components:
           type: string
         estado:
           type: string
-    ErrorResponse:
+    ErrorDetail:
       type: object
       properties:
+        campo:
+          type: string
+          nullable: true
+          example: descripcion
         mensaje:
           type: string
+          example: La descripcion debe tener entre 20 y 1000 caracteres
+    ApiError:
+      type: object
+      properties:
         codigo:
           type: string
+          example: VALIDATION_ERROR
+        mensaje:
+          type: string
+          example: descripcion: La descripcion debe tener entre 20 y 1000 caracteres
+        status:
+          type: integer
+          example: 400
+        error:
+          type: string
+          example: Bad Request
+        ruta:
+          type: string
+          example: /api/v1/solicitudes
         timestamp:
           type: string
           format: date-time
+        detalles:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'

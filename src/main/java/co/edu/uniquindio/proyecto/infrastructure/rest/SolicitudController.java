@@ -22,10 +22,12 @@ import co.edu.uniquindio.proyecto.application.CrearSolicitudUseCase;
 import co.edu.uniquindio.proyecto.application.IniciarAtencionUseCase;
 import co.edu.uniquindio.proyecto.application.MarcarAtendidaUseCase;
 import co.edu.uniquindio.proyecto.application.PriorizarSolicitudUseCase;
-import co.edu.uniquindio.proyecto.domain.valueobject.CodigoSolicitud;
-import co.edu.uniquindio.proyecto.domain.valueobject.IdUsuario;
-import co.edu.uniquindio.proyecto.domain.valueobject.PrioridadSolicitud;
-import co.edu.uniquindio.proyecto.domain.valueobject.TipoSolicitud;
+import co.edu.uniquindio.proyecto.domain.entity.Solicitud;
+import co.edu.uniquindio.proyecto.domain.valueobject.*;
+import co.edu.uniquindio.proyecto.domain.repository.SolicitudRepository;
+import org.springframework.data.domain.*;
+import java.util.stream.Collectors;
+
 import co.edu.uniquindio.proyecto.infrastructure.mapper.SolicitudMapper;
 import co.edu.uniquindio.proyecto.infrastructure.mapper.SolicitudRequestMapper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -65,6 +67,7 @@ public class SolicitudController {
     private final CrearSolicitudUseCase crearSolicitudUseCase;
     private final AsignarResponsableUseCase asignarResponsableUseCase;
     private final CerrarSolicitudUseCase cerrarSolicitudUseCase;
+    private final SolicitudRepository solicitudRepository;
     private final CancelarSolicitudUseCase cancelarSolicitudUseCase;
     private final ConsultarSolicitudesUseCase consultarSolicitudesUseCase;
     private final ConsultarSolicitudPorCodigoUseCase consultarSolicitudPorCodigoUseCase;
@@ -236,4 +239,65 @@ public class SolicitudController {
                 solicitudMapper.toHistorialResponseList(solicitud.obtenerHistorial())
         );
     }
+
+    @GetMapping("/gui11/estado-prioridad/{estado}")
+    @Operation(summary = "Guía 11: Solicitudes por estado ordenadas por prioridad")
+    public ResponseEntity<List<SolicitudResumenResponse>> estadoPrioridad(
+            @PathVariable EstadoSolicitud estado) {
+
+        List<Solicitud> solicitudes = solicitudRepository.buscarPorEstadoPrioridad(estado);
+        return ResponseEntity.ok(
+                solicitudes.stream()
+                        .map(solicitudMapper::toResumenResponse)
+                        .collect(Collectors.toList())
+        );
+    }
+
+    /**
+      Búsqueda por código parcial
+     */
+    @GetMapping("/gui11/codigo")
+    @Operation(summary = "Guía 11: Buscar por código parcial (LIKE)")
+    public ResponseEntity<List<SolicitudResumenResponse>> buscarPorCodigo(
+            @RequestParam String codigo) {
+
+        List<Solicitud> solicitudes = solicitudRepository.buscarPorCodigoParcial(codigo);
+        return ResponseEntity.ok(
+                solicitudes.stream()
+                        .map(solicitudMapper::toResumenResponse)
+                        .collect(Collectors.toList())
+        );
+    }
+
+    /**
+     Paginación activa
+     */
+    @GetMapping("/gui11/activas")
+    @Operation(summary = "Guía 11: Solicitudes activas paginadas")
+    public ResponseEntity<Page<SolicitudResumenResponse>> activasPaginadas(
+            @RequestParam(defaultValue = "0") int pagina,
+            @RequestParam(defaultValue = "10") int tamano) {
+
+        Pageable pageable = PageRequest.of(pagina, tamano, Sort.by("fechaCreacion").descending());
+        Page<Solicitud> page = solicitudRepository.buscarActivasPaginadas(pageable);
+
+        Page<SolicitudResumenResponse> responsePage = page.map(solicitudMapper::toResumenResponse);
+        return ResponseEntity.ok(responsePage);
+    }
+
+    /**
+     Pendientes alta prioridad
+     */
+    @GetMapping("/gui11/pendientes-alta")
+    @Operation(summary = "Guía 11: Pendientes sin asignar alta prioridad")
+    public ResponseEntity<List<SolicitudResumenResponse>> pendientesAltaPrioridad() {
+        List<Solicitud> solicitudes = solicitudRepository
+                .buscarSinAsignarAltaPrioridad(PrioridadSolicitud.Nivel.ALTA);
+        return ResponseEntity.ok(
+                solicitudes.stream()
+                        .map(solicitudMapper::toResumenResponse)
+                        .collect(Collectors.toList())
+        );
+    }
 }
+

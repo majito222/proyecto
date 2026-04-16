@@ -1,9 +1,9 @@
 package co.edu.uniquindio.proyecto.domain.repository;
 
 import co.edu.uniquindio.proyecto.domain.entity.Solicitud;
-import co.edu.uniquindio.proyecto.domain.valueobject.CodigoSolicitud;
-import co.edu.uniquindio.proyecto.domain.valueobject.EstadoSolicitud;
-import co.edu.uniquindio.proyecto.domain.valueobject.IdUsuario;
+import co.edu.uniquindio.proyecto.domain.valueobject.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -58,4 +58,34 @@ public interface SolicitudRepository {
     Optional<Solicitud> findById(String id);
     Optional<Solicitud> findByCodigo(CodigoSolicitud codigo);
     List<Solicitud> findByEstado(EstadoSolicitud estado);
+
+    /**
+     * Busca solicitudes por estado ordenadas por prioridad descendente.
+     */
+    List<Solicitud> buscarPorEstadoPrioridad(EstadoSolicitud estado);
+
+    /**
+     * Busca solicitudes sin asignar con alta prioridad.
+     */
+    List<Solicitud> buscarSinAsignarAltaPrioridad(PrioridadSolicitud.Nivel nivel);
+
+    /**
+     * Busca solicitudes por código parcial
+     */
+    List<Solicitud> buscarPorCodigoParcial(String codigoParcial);
+
+    /**
+     * Busca solicitudes activas con paginación.
+     */
+    Page<Solicitud> buscarActivasPaginadas(Pageable pageable);
+
+    /**
+     * Busca solicitud con historial completo
+     */
+    Optional<Solicitud> buscarConHistorial(CodigoSolicitud codigo);
+
+    /**
+     * Busca por múltiples estados
+     */
+    List<Solicitud> buscarPorVariosEstados(List<EstadoSolicitud> estados);
 }

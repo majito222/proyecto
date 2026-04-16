@@ -37,6 +37,6 @@ public class ClasificarSolicitudUseCase {
 
         solicitud.clasificarSolicitud(tipo, funcionario.getId());
 
-        return solicitudRepository.save(solicitud);
+        return solicitudRepository.guardar(solicitud);
     }
 }

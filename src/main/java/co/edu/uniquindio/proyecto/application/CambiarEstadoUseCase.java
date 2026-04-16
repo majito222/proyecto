@@ -31,6 +31,6 @@ public class CambiarEstadoUseCase {
             default -> throw new RuntimeException("Estado no permitido desde este UseCase");
         }
 
-        return solicitudRepository.save(solicitud);
+        return solicitudRepository.guardar(solicitud);
     }
 }

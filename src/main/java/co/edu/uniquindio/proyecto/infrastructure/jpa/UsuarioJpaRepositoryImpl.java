@@ -5,12 +5,14 @@ import co.edu.uniquindio.proyecto.domain.repository.UsuarioRepository;
 import co.edu.uniquindio.proyecto.domain.valueobject.Email;
 import co.edu.uniquindio.proyecto.domain.valueobject.IdUsuario;
 import co.edu.uniquindio.proyecto.domain.valueobject.TipoUsuario;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+@Repository
 @Transactional
 public class UsuarioJpaRepositoryImpl implements UsuarioRepository {
 
@@ -25,21 +27,23 @@ public class UsuarioJpaRepositoryImpl implements UsuarioRepository {
 
     @Override
     public Usuario guardar(Usuario usuario) {
-        return save(usuario);
+        UsuarioEntity entity = mapper.toEntity(usuario);
+        UsuarioEntity saved = dataRepository.save(entity);
+        return mapper.toDomain(saved);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Usuario buscarPorId(IdUsuario id) {
-        return findById(id)
+        return dataRepository.findById(id.valor())
+                .map(mapper::toDomain)
                 .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado: " + id.valor()));
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<Usuario> buscarPorEmail(Email email) {
-        return dataRepository.findByEmail(email.valor())
-                .map(mapper::toDomain);
+        return dataRepository.findByEmail(email.valor()).map(mapper::toDomain);
     }
 
     @Override
@@ -63,16 +67,7 @@ public class UsuarioJpaRepositoryImpl implements UsuarioRepository {
         dataRepository.deleteById(id.valor());
     }
 
-    @Override
-    public Optional<Usuario> findById(IdUsuario id) {
-        return dataRepository.findById(id.valor())
-                .map(mapper::toDomain);
-    }
-
-    @Override
     public Usuario save(Usuario usuario) {
-        UsuarioEntity entity = mapper.toEntity(usuario);
-        UsuarioEntity saved = dataRepository.save(entity);
-        return mapper.toDomain(saved);
+        return guardar(usuario);
     }
 }

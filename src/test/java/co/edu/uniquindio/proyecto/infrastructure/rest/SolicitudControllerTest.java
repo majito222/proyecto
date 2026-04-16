@@ -7,6 +7,7 @@ import co.edu.uniquindio.proyecto.application.CancelarSolicitudUseCase;
 import co.edu.uniquindio.proyecto.application.CerrarSolicitudUseCase;
 import co.edu.uniquindio.proyecto.application.ClasificarSolicitudUseCase;
 import co.edu.uniquindio.proyecto.application.ConsultarSolicitudPorCodigoUseCase;
+import co.edu.uniquindio.proyecto.application.ConsultarSolicitudesAvanzadasUseCase;
 import co.edu.uniquindio.proyecto.application.ConsultarSolicitudesUseCase;
 import co.edu.uniquindio.proyecto.application.CrearSolicitudUseCase;
 import co.edu.uniquindio.proyecto.application.IniciarAtencionUseCase;
@@ -74,6 +75,9 @@ class SolicitudControllerTest {
 
     @MockitoBean
     private ConsultarSolicitudesUseCase consultarSolicitudesUseCase;
+
+    @MockitoBean
+    private ConsultarSolicitudesAvanzadasUseCase consultarSolicitudesAvanzadasUseCase;
 
     @MockitoBean
     private ConsultarSolicitudPorCodigoUseCase consultarSolicitudPorCodigoUseCase;

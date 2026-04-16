@@ -59,7 +59,7 @@ class ClasificarSolicitudUseCaseGuiaTest {
 
         when(solicitudRepository.buscarPorCodigo(solicitudId)).thenReturn(solicitud);
         when(usuarioRepository.buscarPorId(funcionarioId)).thenReturn(funcionario);
-        when(solicitudRepository.save(solicitud)).thenReturn(solicitud);
+        when(solicitudRepository.guardar(solicitud)).thenReturn(solicitud);
 
         Solicitud resultado = useCase.ejecutar(
                 solicitudId,
@@ -71,7 +71,7 @@ class ClasificarSolicitudUseCaseGuiaTest {
         assertEquals(TipoSolicitud.HOMOLOGACION, resultado.getTipo());
         verify(solicitudRepository).buscarPorCodigo(solicitudId);
         verify(usuarioRepository).buscarPorId(funcionarioId);
-        verify(solicitudRepository).save(solicitud);
+        verify(solicitudRepository).guardar(solicitud);
     }
 
     @Test
@@ -90,6 +90,6 @@ class ClasificarSolicitudUseCaseGuiaTest {
         assertEquals("Solicitud no encontrada: SOL-301", exception.getMessage());
         verify(solicitudRepository).buscarPorCodigo(solicitudId);
         verify(usuarioRepository, never()).buscarPorId(any());
-        verify(solicitudRepository, never()).save(any());
+        verify(solicitudRepository, never()).guardar(any());
     }
 }

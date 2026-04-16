@@ -38,6 +38,6 @@ public class AsignarResponsableUseCase {
         solicitud.asignarResponsable(funcionario.getId());
 
         // 3. Guardar cambios
-        return solicitudRepository.save(solicitud);
+        return solicitudRepository.guardar(solicitud);
     }
 }

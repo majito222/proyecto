@@ -36,6 +36,6 @@ public class CerrarSolicitudUseCase {
 
         solicitud.cerrarSolicitud(administrador.getId(), observacion);
 
-        return solicitudRepository.save(solicitud);
+        return solicitudRepository.guardar(solicitud);
     }
 }

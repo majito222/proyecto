@@ -31,7 +31,7 @@ public class CrearUsuarioUseCase {
 
         Usuario usuario = new Usuario(id, nombre, email, tipo);
 
-        return usuarioRepository.save(usuario);
+        return usuarioRepository.guardar(usuario);
     }
 
     @Transactional

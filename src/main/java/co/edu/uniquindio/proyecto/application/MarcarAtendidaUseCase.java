@@ -33,6 +33,6 @@ public class MarcarAtendidaUseCase {
 
         solicitud.marcarAtendida(funcionario.getId());
 
-        return solicitudRepository.save(solicitud);
+        return solicitudRepository.guardar(solicitud);
     }
 }

@@ -52,14 +52,14 @@ class AsignarResponsableUseCaseGuiaTest {
 
         when(solicitudRepository.buscarPorCodigo(solicitudId)).thenReturn(solicitud);
         when(usuarioRepository.buscarPorId(funcionarioId)).thenReturn(funcionario);
-        when(solicitudRepository.save(solicitud)).thenReturn(solicitud);
+        when(solicitudRepository.guardar(solicitud)).thenReturn(solicitud);
 
         Solicitud resultado = useCase.ejecutar(solicitudId, funcionarioId);
 
         assertEquals(3, resultado.obtenerHistorial().size());
         verify(solicitudRepository).buscarPorCodigo(solicitudId);
         verify(usuarioRepository).buscarPorId(funcionarioId);
-        verify(solicitudRepository).save(solicitud);
+        verify(solicitudRepository).guardar(solicitud);
     }
 
     @Test
@@ -80,7 +80,7 @@ class AsignarResponsableUseCaseGuiaTest {
         assertEquals("Usuario no encontrado: 899999", exception.getMessage());
         verify(solicitudRepository).buscarPorCodigo(solicitudId);
         verify(usuarioRepository).buscarPorId(funcionarioId);
-        verify(solicitudRepository, never()).save(any());
+        verify(solicitudRepository, never()).guardar(any());
     }
 
     private Solicitud crearSolicitudClasificada() {

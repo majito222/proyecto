@@ -48,7 +48,7 @@ class CerrarSolicitudUseCaseTest {
 
         when(solicitudRepository.buscarPorCodigo(solicitudId)).thenReturn(solicitud);
         when(usuarioRepository.buscarPorId(administradorId)).thenReturn(administrador);
-        when(solicitudRepository.save(solicitud)).thenReturn(solicitud);
+        when(solicitudRepository.guardar(solicitud)).thenReturn(solicitud);
 
         Solicitud resultado = useCase.ejecutar(solicitudId, administradorId, "Solicitud resuelta");
 
@@ -57,7 +57,7 @@ class CerrarSolicitudUseCaseTest {
                 .anyMatch(evento -> evento.accion().contains("Solicitud cerrada")));
         verify(solicitudRepository).buscarPorCodigo(solicitudId);
         verify(usuarioRepository).buscarPorId(administradorId);
-        verify(solicitudRepository).save(solicitud);
+        verify(solicitudRepository).guardar(solicitud);
     }
 
     @Test
@@ -78,7 +78,7 @@ class CerrarSolicitudUseCaseTest {
         assertEquals("Usuario no encontrado: 999999", exception.getMessage());
         verify(solicitudRepository).buscarPorCodigo(solicitudId);
         verify(usuarioRepository).buscarPorId(administradorId);
-        verify(solicitudRepository, never()).save(any());
+        verify(solicitudRepository, never()).guardar(any());
     }
 
     private Solicitud crearSolicitudAtendida() {

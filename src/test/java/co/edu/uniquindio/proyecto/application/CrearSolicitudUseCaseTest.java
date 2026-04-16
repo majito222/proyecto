@@ -1,18 +1,26 @@
 package co.edu.uniquindio.proyecto.application;
 
 import co.edu.uniquindio.proyecto.domain.entity.Solicitud;
+import co.edu.uniquindio.proyecto.domain.entity.Usuario;
 import co.edu.uniquindio.proyecto.domain.repository.SolicitudRepository;
 import co.edu.uniquindio.proyecto.domain.repository.UsuarioRepository;
-import co.edu.uniquindio.proyecto.domain.valueobject.*;
+import co.edu.uniquindio.proyecto.domain.valueobject.DescripcionSolicitud;
+import co.edu.uniquindio.proyecto.domain.valueobject.Email;
+import co.edu.uniquindio.proyecto.domain.valueobject.IdUsuario;
+import co.edu.uniquindio.proyecto.domain.valueobject.TipoCanal;
+import co.edu.uniquindio.proyecto.domain.valueobject.TipoSolicitud;
+import co.edu.uniquindio.proyecto.domain.valueobject.TipoUsuario;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CrearSolicitudUseCaseTest {
@@ -28,20 +36,24 @@ class CrearSolicitudUseCaseTest {
 
     @Test
     void ejecutar_deberiaCrearSolicitudYGuardar() {
-        // GIVEN
-        IdUsuario idMock = mock(IdUsuario.class);
-        TipoCanal canalMock = mock(TipoCanal.class);
-        TipoSolicitud tipoMock = mock(TipoSolicitud.class);
-        DescripcionSolicitud descMock = mock(DescripcionSolicitud.class);
+        IdUsuario id = new IdUsuario("123456");
+        Usuario usuario = new Usuario(id, "Ana Perez", new Email("ana@uq.edu.co"), TipoUsuario.ESTUDIANTE);
+        DescripcionSolicitud descripcion =
+                new DescripcionSolicitud("Descripcion valida para crear una solicitud de prueba.");
 
-        Solicitud solicitudMock = mock(Solicitud.class);
-        when(solicitudRepository.save(any())).thenReturn(solicitudMock);
+        Solicitud solicitudMock = org.mockito.Mockito.mock(Solicitud.class);
+        when(usuarioRepository.buscarPorId(id)).thenReturn(usuario);
+        when(solicitudRepository.guardar(any())).thenReturn(solicitudMock);
 
-        // WHEN
-        Solicitud resultado = useCase.ejecutar(idMock, canalMock, tipoMock, descMock);
+        Solicitud resultado = useCase.ejecutar(
+                id,
+                TipoCanal.CSU,
+                TipoSolicitud.CONSULTA_ACADEMICA,
+                descripcion
+        );
 
-        // THEN
         assertNotNull(resultado);
-        verify(solicitudRepository, times(1)).save(any(Solicitud.class));
+        verify(usuarioRepository, times(1)).buscarPorId(id);
+        verify(solicitudRepository, times(1)).guardar(any(Solicitud.class));
     }
 }

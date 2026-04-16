@@ -6,6 +6,7 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
+import java.util.Collection;
 import java.util.List;
 import java.util.NavigableSet;
 import java.util.Objects;
@@ -52,6 +53,32 @@ public class Solicitud {
         );
     }
 
+    public static Solicitud reconstituir(
+            CodigoSolicitud codigo,
+            IdUsuario estudianteId,
+            String estudianteNombre,
+            TipoCanal canal,
+            TipoSolicitud tipo,
+            DescripcionSolicitud descripcion,
+            EstadoSolicitud estado,
+            PrioridadSolicitud prioridad,
+            IdUsuario responsableId,
+            Collection<Historial> historial) {
+
+        return new Solicitud(
+                codigo,
+                estudianteId,
+                estudianteNombre,
+                canal,
+                tipo,
+                descripcion,
+                estado,
+                prioridad,
+                responsableId,
+                historial
+        );
+    }
+
     public Solicitud(CodigoSolicitud codigo,
                      IdUsuario estudianteId,
                      String estudianteNombre,
@@ -69,6 +96,32 @@ public class Solicitud {
         this.estado = EstadoSolicitud.REGISTRADA;
 
         registrarEvento("Solicitud registrada");
+    }
+
+    private Solicitud(CodigoSolicitud codigo,
+                      IdUsuario estudianteId,
+                      String estudianteNombre,
+                      TipoCanal canal,
+                      TipoSolicitud tipo,
+                      DescripcionSolicitud descripcion,
+                      EstadoSolicitud estado,
+                      PrioridadSolicitud prioridad,
+                      IdUsuario responsableId,
+                      Collection<Historial> historial) {
+
+        this.codigo = Objects.requireNonNull(codigo);
+        this.estudianteId = Objects.requireNonNull(estudianteId);
+        this.estudianteNombre = Objects.requireNonNull(estudianteNombre);
+        this.canal = Objects.requireNonNull(canal);
+        this.tipo = Objects.requireNonNull(tipo);
+        this.descripcion = Objects.requireNonNull(descripcion);
+        this.estado = Objects.requireNonNull(estado);
+        this.prioridad = prioridad;
+        this.responsableId = responsableId;
+
+        if (historial != null) {
+            this.historial.addAll(historial);
+        }
     }
 
     public void clasificarSolicitud(TipoSolicitud tipo, IdUsuario administradorId) {
@@ -179,6 +232,10 @@ public class Solicitud {
 
     public PrioridadSolicitud getPrioridad() {
         return prioridad;
+    }
+
+    public IdUsuario getResponsableId() {
+        return responsableId;
     }
 
     public List<Historial> buscarHistorialEntre(LocalDateTime desde, LocalDateTime hasta) {

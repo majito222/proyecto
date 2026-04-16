@@ -36,6 +36,6 @@ public class PriorizarSolicitudUseCase {
 
         solicitud.asignarPrioridad(prioridad, funcionario.getId());
 
-        return solicitudRepository.save(solicitud);
+        return solicitudRepository.guardar(solicitud);
     }
 }

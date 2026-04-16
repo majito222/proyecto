@@ -26,8 +26,11 @@ public class CrearSolicitudUseCase {
                               TipoSolicitud tipo,
                               DescripcionSolicitud descripcion) {
 
-        Usuario estudiante = usuarioRepository.findById(estudianteId)
-                .orElseThrow(() -> new RuntimeException("Estudiante no encontrado"));
+        Usuario estudiante = usuarioRepository.buscarPorId(estudianteId);
+
+        if (solicitudRepository.existePorCodigo(codigo)) {
+            throw new IllegalArgumentException("Ya existe una solicitud con el codigo " + codigo.valor());
+        }
 
         Solicitud solicitud = Solicitud.crear(
                 codigo,
@@ -38,7 +41,7 @@ public class CrearSolicitudUseCase {
                 descripcion
         );
 
-        return solicitudRepository.save(solicitud);
+        return solicitudRepository.guardar(solicitud);
     }
 
     @Transactional

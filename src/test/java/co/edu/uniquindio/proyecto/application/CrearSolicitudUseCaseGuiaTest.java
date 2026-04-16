@@ -17,7 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
+import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -51,8 +51,8 @@ class CrearSolicitudUseCaseGuiaTest {
         DescripcionSolicitud descripcion =
                 new DescripcionSolicitud("Descripcion valida para crear una solicitud nueva.");
 
-        when(usuarioRepository.findById(estudianteId)).thenReturn(Optional.of(estudiante));
-        when(solicitudRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(usuarioRepository.buscarPorId(estudianteId)).thenReturn(estudiante);
+        when(solicitudRepository.guardar(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         Solicitud resultado = useCase.ejecutar(
                 estudianteId,
@@ -62,8 +62,8 @@ class CrearSolicitudUseCaseGuiaTest {
         );
 
         ArgumentCaptor<Solicitud> captor = ArgumentCaptor.forClass(Solicitud.class);
-        verify(usuarioRepository).findById(estudianteId);
-        verify(solicitudRepository).save(captor.capture());
+        verify(usuarioRepository).buscarPorId(estudianteId);
+        verify(solicitudRepository).guardar(captor.capture());
         assertEquals("123456", resultado.getEstudianteId().valor());
         assertEquals("REGISTRADA", resultado.getEstado().name());
         assertEquals("Ana Perez", captor.getValue().getEstudianteNombre());
@@ -76,10 +76,11 @@ class CrearSolicitudUseCaseGuiaTest {
         DescripcionSolicitud descripcion =
                 new DescripcionSolicitud("Descripcion valida para intentar crear una solicitud.");
 
-        when(usuarioRepository.findById(estudianteId)).thenReturn(Optional.empty());
+        when(usuarioRepository.buscarPorId(estudianteId))
+                .thenThrow(new NoSuchElementException("Usuario no encontrado: 654321"));
 
-        RuntimeException exception = assertThrows(
-                RuntimeException.class,
+        NoSuchElementException exception = assertThrows(
+                NoSuchElementException.class,
                 () -> useCase.ejecutar(
                         estudianteId,
                         TipoCanal.CSU,
@@ -88,8 +89,8 @@ class CrearSolicitudUseCaseGuiaTest {
                 )
         );
 
-        assertEquals("Estudiante no encontrado", exception.getMessage());
-        verify(usuarioRepository).findById(estudianteId);
-        verify(solicitudRepository, never()).save(any());
+        assertEquals("Usuario no encontrado: 654321", exception.getMessage());
+        verify(usuarioRepository).buscarPorId(estudianteId);
+        verify(solicitudRepository, never()).guardar(any());
     }
 }

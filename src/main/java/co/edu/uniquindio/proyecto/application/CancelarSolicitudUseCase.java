@@ -27,6 +27,6 @@ public class CancelarSolicitudUseCase {
 
         solicitud.cancelarSolicitud(responsable.getId(), observacion);
 
-        return solicitudRepository.save(solicitud);
+        return solicitudRepository.guardar(solicitud);
     }
 }

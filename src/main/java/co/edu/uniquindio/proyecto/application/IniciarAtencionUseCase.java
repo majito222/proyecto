@@ -32,6 +32,6 @@ public class IniciarAtencionUseCase {
 
         solicitud.iniciarAtencion(funcionario.getId());
 
-        return solicitudRepository.save(solicitud);
+        return solicitudRepository.guardar(solicitud);
     }
 }

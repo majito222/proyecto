@@ -33,14 +33,14 @@ class ClasificarSolicitudUseCaseTest {
 
         when(solicitudRepository.buscarPorCodigo(codigo)).thenReturn(solicitudMock);
         when(usuarioRepository.buscarPorId(funcionarioId)).thenReturn(funcionarioMock);
-        when(solicitudRepository.save(any())).thenReturn(solicitudMock);
+        when(solicitudRepository.guardar(any())).thenReturn(solicitudMock);
 
         // WHEN
         Solicitud resultado = useCase.ejecutar(codigo, funcionarioId, tipo);
 
         // THEN
         assertNotNull(resultado);
-        verify(solicitudMock).clasificarSolicitud(tipo, any());
-        verify(solicitudRepository).save(solicitudMock);
+        verify(solicitudMock).clasificarSolicitud(eq(tipo), any());
+        verify(solicitudRepository).guardar(solicitudMock);
     }
 }

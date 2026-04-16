@@ -21,6 +21,7 @@ import co.edu.uniquindio.proyecto.application.dto.request.MarcarAtendidaRequest;
 import co.edu.uniquindio.proyecto.application.dto.request.PriorizarSolicitudRequest;
 import co.edu.uniquindio.proyecto.application.dto.response.ErrorResponse;
 import co.edu.uniquindio.proyecto.application.dto.response.HistorialResponse;
+import co.edu.uniquindio.proyecto.application.dto.response.PaginaResponse;
 import co.edu.uniquindio.proyecto.application.dto.response.SolicitudDetalleResponse;
 import co.edu.uniquindio.proyecto.application.dto.response.SolicitudResumenResponse;
 import co.edu.uniquindio.proyecto.domain.entity.Solicitud;
@@ -217,7 +218,7 @@ public class SolicitudController {
 
     @GetMapping
     @Operation(summary = "Consultar solicitudes con filtros y paginacion")
-    public ResponseEntity<Page<SolicitudResumenResponse>> consultar(
+    public ResponseEntity<PaginaResponse<SolicitudResumenResponse>> consultar(
             @RequestParam(required = false) String estado,
             @RequestParam(required = false) String canal,
             @RequestParam(defaultValue = "0") int pagina,
@@ -230,10 +231,10 @@ public class SolicitudController {
                 : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(pagina, tamano, Sort.by(sortDirection, ordenarPor));
 
-        return ResponseEntity.ok(
-                consultarSolicitudesUseCase.ejecutar(estado, canal, pageable)
-                        .map(solicitudMapper::toResumenResponse)
-        );
+        Page<SolicitudResumenResponse> solicitudes = consultarSolicitudesUseCase.ejecutar(estado, canal, pageable)
+                .map(solicitudMapper::toResumenResponse);
+
+        return ResponseEntity.ok(PaginaResponse.of(solicitudes));
     }
 
     @GetMapping("/{codigo}")
@@ -244,57 +245,72 @@ public class SolicitudController {
     }
 
     @GetMapping("/{codigo}/historial")
-    @Operation(summary = "Consultar historial de solicitud")
-    public ResponseEntity<List<HistorialResponse>> obtenerHistorial(@PathVariable String codigo) {
+    @Operation(summary = "Consultar historial de solicitud con paginacion")
+    public ResponseEntity<PaginaResponse<HistorialResponse>> obtenerHistorial(
+            @PathVariable String codigo,
+            @RequestParam(defaultValue = "0") int pagina,
+            @RequestParam(defaultValue = "10") int tamano) {
+
         var solicitud = consultarSolicitudPorCodigoUseCase.ejecutar(new CodigoSolicitud(codigo));
-        return ResponseEntity.ok(
-                solicitudMapper.toHistorialResponseList(solicitud.obtenerHistorial())
-        );
+        Pageable pageable = PageRequest.of(pagina, tamano);
+        List<HistorialResponse> historial = solicitudMapper.toHistorialResponseList(solicitud.obtenerHistorial());
+
+        return ResponseEntity.ok(PaginaResponse.of(historial, pageable));
     }
 
     @GetMapping("/gui11/estado-prioridad/{estado}")
-    @Operation(summary = "Solicitudes por estado ordenadas por prioridad")
-    public ResponseEntity<List<SolicitudResumenResponse>> estadoPrioridad(
-            @PathVariable EstadoSolicitud estado) {
+    @Operation(summary = "Solicitudes por estado ordenadas por prioridad con paginacion")
+    public ResponseEntity<PaginaResponse<SolicitudResumenResponse>> estadoPrioridad(
+            @PathVariable EstadoSolicitud estado,
+            @RequestParam(defaultValue = "0") int pagina,
+            @RequestParam(defaultValue = "10") int tamano) {
 
-        return ResponseEntity.ok(
-                consultarSolicitudesAvanzadasUseCase.buscarPorEstadoPrioridad(estado).stream()
-                        .map(solicitudMapper::toResumenResponse)
-                        .toList()
-        );
+        Pageable pageable = PageRequest.of(pagina, tamano, Sort.by(Sort.Direction.DESC, "prioridad.nivel"));
+        Page<SolicitudResumenResponse> solicitudes = consultarSolicitudesAvanzadasUseCase
+                .buscarPorEstadoPrioridad(estado, pageable)
+                .map(solicitudMapper::toResumenResponse);
+
+        return ResponseEntity.ok(PaginaResponse.of(solicitudes));
     }
 
     @GetMapping("/gui11/codigo")
-    @Operation(summary = "Busqueda por codigo o descripcion")
-    public ResponseEntity<List<SolicitudResumenResponse>> buscarPorCodigo(@RequestParam String codigo) {
-        return ResponseEntity.ok(
-                consultarSolicitudesAvanzadasUseCase.buscarPorTexto(codigo).stream()
-                        .map(solicitudMapper::toResumenResponse)
-                        .toList()
-        );
+    @Operation(summary = "Busqueda por codigo o descripcion con paginacion")
+    public ResponseEntity<PaginaResponse<SolicitudResumenResponse>> buscarPorCodigo(
+            @RequestParam String codigo,
+            @RequestParam(defaultValue = "0") int pagina,
+            @RequestParam(defaultValue = "10") int tamano) {
+
+        Pageable pageable = PageRequest.of(pagina, tamano, Sort.by(Sort.Direction.DESC, "fechaCreacion"));
+        Page<SolicitudResumenResponse> solicitudes = consultarSolicitudesAvanzadasUseCase.buscarPorTexto(codigo, pageable)
+                .map(solicitudMapper::toResumenResponse);
+
+        return ResponseEntity.ok(PaginaResponse.of(solicitudes));
     }
 
     @GetMapping("/gui11/activas")
     @Operation(summary = "Solicitudes activas paginadas")
-    public ResponseEntity<Page<SolicitudResumenResponse>> activasPaginadas(
+    public ResponseEntity<PaginaResponse<SolicitudResumenResponse>> activasPaginadas(
             @RequestParam(defaultValue = "0") int pagina,
             @RequestParam(defaultValue = "10") int tamano) {
 
         Pageable pageable = PageRequest.of(pagina, tamano, Sort.by("fechaCreacion").descending());
-        return ResponseEntity.ok(
-                consultarSolicitudesAvanzadasUseCase.buscarActivasPaginadas(pageable)
-                        .map(solicitudMapper::toResumenResponse)
-        );
+        Page<SolicitudResumenResponse> solicitudes = consultarSolicitudesAvanzadasUseCase.buscarActivasPaginadas(pageable)
+                .map(solicitudMapper::toResumenResponse);
+
+        return ResponseEntity.ok(PaginaResponse.of(solicitudes));
     }
 
     @GetMapping("/gui11/pendientes-alta")
-    @Operation(summary = "Pendientes sin asignar de alta prioridad")
-    public ResponseEntity<List<SolicitudResumenResponse>> pendientesAltaPrioridad() {
-        return ResponseEntity.ok(
-                consultarSolicitudesAvanzadasUseCase.buscarSinAsignarAltaPrioridad(PrioridadSolicitud.Nivel.ALTA)
-                        .stream()
-                        .map(solicitudMapper::toResumenResponse)
-                        .toList()
-        );
+    @Operation(summary = "Pendientes sin asignar de alta prioridad con paginacion")
+    public ResponseEntity<PaginaResponse<SolicitudResumenResponse>> pendientesAltaPrioridad(
+            @RequestParam(defaultValue = "0") int pagina,
+            @RequestParam(defaultValue = "10") int tamano) {
+
+        Pageable pageable = PageRequest.of(pagina, tamano, Sort.by("fechaCreacion").descending());
+        Page<SolicitudResumenResponse> solicitudes = consultarSolicitudesAvanzadasUseCase
+                .buscarSinAsignarAltaPrioridad(PrioridadSolicitud.Nivel.ALTA, pageable)
+                .map(solicitudMapper::toResumenResponse);
+
+        return ResponseEntity.ok(PaginaResponse.of(solicitudes));
     }
 }

@@ -2,6 +2,7 @@ package co.edu.uniquindio.proyecto.infrastructure.rest;
 
 import co.edu.uniquindio.proyecto.application.dto.request.CrearUsuarioRequest;
 import co.edu.uniquindio.proyecto.application.dto.response.ErrorResponse;
+import co.edu.uniquindio.proyecto.application.dto.response.PaginaResponse;
 import co.edu.uniquindio.proyecto.application.dto.response.UsuarioDetalleResponse;
 import co.edu.uniquindio.proyecto.application.dto.response.UsuarioResumenResponse;
 import co.edu.uniquindio.proyecto.application.ConsultarUsuarioPorIdUseCase;
@@ -18,6 +19,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,11 +28,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/usuarios")
@@ -72,12 +75,21 @@ public class UsuarioController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar usuarios")
-    public ResponseEntity<List<UsuarioResumenResponse>> listarUsuarios() {
+    @Operation(summary = "Listar usuarios con paginacion")
+    public ResponseEntity<PaginaResponse<UsuarioResumenResponse>> listarUsuarios(
+            @RequestParam(defaultValue = "0") int pagina,
+            @RequestParam(defaultValue = "10") int tamano,
+            @RequestParam(defaultValue = "nombre") String ordenarPor,
+            @RequestParam(defaultValue = "asc") String direccion) {
 
-        var usuarios = listarUsuariosUseCase.ejecutar();
+        Sort.Direction sortDirection = "desc".equalsIgnoreCase(direccion)
+                ? Sort.Direction.DESC
+                : Sort.Direction.ASC;
+        var pageable = PageRequest.of(pagina, tamano, Sort.by(sortDirection, ordenarPor));
+        var usuarios = listarUsuariosUseCase.ejecutar(pageable)
+                .map(usuarioMapper::toResumenResponse);
 
-        return ResponseEntity.ok(usuarioMapper.toResumenResponseList(usuarios));
+        return ResponseEntity.ok(PaginaResponse.of(usuarios));
     }
 
     @GetMapping("/{id}")

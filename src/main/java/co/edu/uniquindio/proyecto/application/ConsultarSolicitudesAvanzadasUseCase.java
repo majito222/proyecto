@@ -10,8 +10,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class ConsultarSolicitudesAvanzadasUseCase {
@@ -19,13 +17,13 @@ public class ConsultarSolicitudesAvanzadasUseCase {
     private final SolicitudRepository solicitudRepository;
 
     @Transactional(readOnly = true)
-    public List<Solicitud> buscarPorEstadoPrioridad(EstadoSolicitud estado) {
-        return solicitudRepository.buscarPorEstadoPrioridad(estado);
+    public Page<Solicitud> buscarPorEstadoPrioridad(EstadoSolicitud estado, Pageable pageable) {
+        return solicitudRepository.buscarPorEstadoPrioridad(estado, pageable);
     }
 
     @Transactional(readOnly = true)
-    public List<Solicitud> buscarPorTexto(String texto) {
-        return solicitudRepository.buscarPorTexto(texto);
+    public Page<Solicitud> buscarPorTexto(String texto, Pageable pageable) {
+        return solicitudRepository.buscarPorTexto(texto, pageable);
     }
 
     @Transactional(readOnly = true)
@@ -34,7 +32,7 @@ public class ConsultarSolicitudesAvanzadasUseCase {
     }
 
     @Transactional(readOnly = true)
-    public List<Solicitud> buscarSinAsignarAltaPrioridad(PrioridadSolicitud.Nivel nivel) {
-        return solicitudRepository.buscarSinAsignarAltaPrioridad(nivel);
+    public Page<Solicitud> buscarSinAsignarAltaPrioridad(PrioridadSolicitud.Nivel nivel, Pageable pageable) {
+        return solicitudRepository.buscarSinAsignarAltaPrioridad(nivel, pageable);
     }
 }

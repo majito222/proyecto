@@ -26,6 +26,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -188,8 +190,42 @@ class SolicitudControllerTest {
 
         mockMvc.perform(get("/api/v1/solicitudes/SOL-001/historial"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].accion").value("Solicitud registrada"))
-                .andExpect(jsonPath("$[0].responsable").value("SISTEMA"))
-                .andExpect(jsonPath("$[0].fecha").value("2026-04-13T10:00:00"));
+                .andExpect(jsonPath("$.contenido[0].accion").value("Solicitud registrada"))
+                .andExpect(jsonPath("$.contenido[0].responsable").value("SISTEMA"))
+                .andExpect(jsonPath("$.contenido[0].fecha").value("2026-04-13T10:00:00"))
+                .andExpect(jsonPath("$.pagina").value(0))
+                .andExpect(jsonPath("$.tamano").value(10));
+    }
+
+    @Test
+    void consultarSolicitudesDebeRetornarPagina() throws Exception {
+        var solicitud = Solicitud.crear(
+                new CodigoSolicitud("SOL-001"),
+                new IdUsuario("123456"),
+                "Ana Perez",
+                TipoCanal.CSU,
+                TipoSolicitud.CONSULTA_ACADEMICA,
+                new DescripcionSolicitud("Necesito apoyo con una solicitud academica del semestre actual.")
+        );
+        var response = new co.edu.uniquindio.proyecto.application.dto.response.SolicitudResumenResponse(
+                "SOL-001",
+                "123456",
+                "Ana Perez",
+                "CONSULTA_ACADEMICA",
+                "REGISTRADA",
+                null
+        );
+
+        when(consultarSolicitudesUseCase.ejecutar(eq("REGISTRADA"), eq("CSU"), any()))
+                .thenReturn(new PageImpl<>(List.of(solicitud), PageRequest.of(0, 10), 1));
+        when(solicitudMapper.toResumenResponse(solicitud)).thenReturn(response);
+
+        mockMvc.perform(get("/api/v1/solicitudes")
+                        .param("estado", "REGISTRADA")
+                        .param("canal", "CSU"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.contenido[0].codigo").value("SOL-001"))
+                .andExpect(jsonPath("$.totalElementos").value(1))
+                .andExpect(jsonPath("$.primera").value(true));
     }
 }

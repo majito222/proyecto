@@ -28,7 +28,15 @@ public interface SolicitudJpaDataRepository extends JpaRepository<SolicitudEntit
 
     List<SolicitudEntity> findByCodigoContainingIgnoreCaseOrDescripcionContainingIgnoreCase(String codigo, String descripcion);
 
+    Page<SolicitudEntity> findByCodigoContainingIgnoreCaseOrDescripcionContainingIgnoreCase(
+            String codigo,
+            String descripcion,
+            Pageable pageable
+    );
+
     List<SolicitudEntity> findByEstadoOrderByPrioridad_NivelDesc(EstadoSolicitud estado);
+
+    Page<SolicitudEntity> findByEstadoOrderByPrioridad_NivelDesc(EstadoSolicitud estado, Pageable pageable);
 
     List<SolicitudEntity> findByCanalOrigenOrderByPrioridad_NivelDesc(TipoCanal canalOrigen);
 
@@ -46,7 +54,10 @@ public interface SolicitudJpaDataRepository extends JpaRepository<SolicitudEntit
     List<SolicitudEntity> findSolicitudesPendientesDeAsignacion();
 
     @Query("SELECT s FROM SolicitudEntity s WHERE s.responsableId IS NULL AND s.prioridad.nivel = :nivel")
-    List<SolicitudEntity> buscarSinAsignarPorPrioridadAlta(@Param("nivel") PrioridadSolicitud.Nivel nivel);
+    Page<SolicitudEntity> buscarSinAsignarPorPrioridadAlta(
+            @Param("nivel") PrioridadSolicitud.Nivel nivel,
+            Pageable pageable
+    );
 
     @Query("SELECT s FROM SolicitudEntity s WHERE s.estado <> 'CERRADA'")
     Page<SolicitudEntity> buscarActivasPaginadas(Pageable pageable);

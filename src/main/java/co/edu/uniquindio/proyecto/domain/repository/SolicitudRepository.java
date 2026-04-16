@@ -28,13 +28,13 @@ public interface SolicitudRepository {
 
     boolean existePorCodigo(CodigoSolicitud codigo);
 
-    List<Solicitud> buscarPorEstadoPrioridad(EstadoSolicitud estado);
+    Page<Solicitud> buscarPorEstadoPrioridad(EstadoSolicitud estado, Pageable pageable);
 
-    List<Solicitud> buscarSinAsignarAltaPrioridad(PrioridadSolicitud.Nivel nivel);
+    Page<Solicitud> buscarSinAsignarAltaPrioridad(PrioridadSolicitud.Nivel nivel, Pageable pageable);
 
     List<Solicitud> buscarPorCodigoParcial(String codigoParcial);
 
-    List<Solicitud> buscarPorTexto(String texto);
+    Page<Solicitud> buscarPorTexto(String texto, Pageable pageable);
 
     Page<Solicitud> buscarActivasPaginadas(Pageable pageable);
 

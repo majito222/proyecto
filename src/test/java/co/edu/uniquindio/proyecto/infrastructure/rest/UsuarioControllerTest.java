@@ -1,6 +1,7 @@
 package co.edu.uniquindio.proyecto.infrastructure.rest;
 
 import co.edu.uniquindio.proyecto.application.dto.response.UsuarioDetalleResponse;
+import co.edu.uniquindio.proyecto.application.dto.response.UsuarioResumenResponse;
 import co.edu.uniquindio.proyecto.application.ConsultarUsuarioPorIdUseCase;
 import co.edu.uniquindio.proyecto.application.CrearUsuarioUseCase;
 import co.edu.uniquindio.proyecto.application.ListarUsuariosUseCase;
@@ -15,14 +16,20 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -95,5 +102,26 @@ class UsuarioControllerTest {
                                 }
                                 """))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void listarUsuariosDebeRetornarPagina() throws Exception {
+        var usuario = new Usuario(
+                new IdUsuario("123456"),
+                "Ana Perez",
+                new Email("ana@uq.edu.co"),
+                TipoUsuario.ESTUDIANTE
+        );
+        var response = new UsuarioResumenResponse("123456", "Ana Perez", "ESTUDIANTE", "ACTIVO");
+
+        when(listarUsuariosUseCase.ejecutar(any()))
+                .thenReturn(new PageImpl<>(List.of(usuario), PageRequest.of(0, 10), 1));
+        when(usuarioMapper.toResumenResponse(usuario)).thenReturn(response);
+
+        mockMvc.perform(get("/api/v1/usuarios"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.contenido[0].id").value("123456"))
+                .andExpect(jsonPath("$.totalElementos").value(1))
+                .andExpect(jsonPath("$.primera").value(true));
     }
 }

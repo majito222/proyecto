@@ -4,6 +4,8 @@ import co.edu.uniquindio.proyecto.domain.entity.Usuario;
 import co.edu.uniquindio.proyecto.domain.valueobject.Email;
 import co.edu.uniquindio.proyecto.domain.valueobject.IdUsuario;
 import co.edu.uniquindio.proyecto.domain.valueobject.TipoUsuario;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,7 +20,7 @@ public interface UsuarioRepository {
 
     List<Usuario> buscarPorTipo(TipoUsuario tipo);
 
-    List<Usuario> listarTodos();
+    Page<Usuario> listarTodos(Pageable pageable);
 
     void eliminarPorId(IdUsuario id);
 }

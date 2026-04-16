@@ -5,6 +5,8 @@ import co.edu.uniquindio.proyecto.domain.repository.UsuarioRepository;
 import co.edu.uniquindio.proyecto.domain.valueobject.Email;
 import co.edu.uniquindio.proyecto.domain.valueobject.IdUsuario;
 import co.edu.uniquindio.proyecto.domain.valueobject.TipoUsuario;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,10 +58,8 @@ public class UsuarioJpaRepositoryImpl implements UsuarioRepository {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Usuario> listarTodos() {
-        return dataRepository.findAll().stream()
-                .map(mapper::toDomain)
-                .toList();
+    public Page<Usuario> listarTodos(Pageable pageable) {
+        return dataRepository.findAll(pageable).map(mapper::toDomain);
     }
 
     @Override

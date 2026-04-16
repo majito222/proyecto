@@ -82,18 +82,14 @@ public class SolicitudJpaRepositoryImpl implements SolicitudRepository {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Solicitud> buscarPorEstadoPrioridad(EstadoSolicitud estado) {
-        return jpaRepository.findByEstadoOrderByPrioridad_NivelDesc(estado).stream()
-                .map(mapper::toDomain)
-                .toList();
+    public Page<Solicitud> buscarPorEstadoPrioridad(EstadoSolicitud estado, Pageable pageable) {
+        return jpaRepository.findByEstadoOrderByPrioridad_NivelDesc(estado, pageable).map(mapper::toDomain);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<Solicitud> buscarSinAsignarAltaPrioridad(PrioridadSolicitud.Nivel nivel) {
-        return jpaRepository.buscarSinAsignarPorPrioridadAlta(nivel).stream()
-                .map(mapper::toDomain)
-                .toList();
+    public Page<Solicitud> buscarSinAsignarAltaPrioridad(PrioridadSolicitud.Nivel nivel, Pageable pageable) {
+        return jpaRepository.buscarSinAsignarPorPrioridadAlta(nivel, pageable).map(mapper::toDomain);
     }
 
     @Override
@@ -107,8 +103,10 @@ public class SolicitudJpaRepositoryImpl implements SolicitudRepository {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Solicitud> buscarPorTexto(String texto) {
-        return buscarPorCodigoParcial(texto);
+    public Page<Solicitud> buscarPorTexto(String texto, Pageable pageable) {
+        return jpaRepository
+                .findByCodigoContainingIgnoreCaseOrDescripcionContainingIgnoreCase(texto, texto, pageable)
+                .map(mapper::toDomain);
     }
 
     @Override

@@ -16,6 +16,8 @@ public class DefaultUserProperties {
     @Getter
     @Setter
     public static class User {
+        private String id;
+        private String nombre;
         private String email;
         private String password;
         private String tipo;

@@ -1,19 +1,46 @@
 openapi: 3.0.3
 info:
   title: API de Gestion de Solicitudes Academicas
-  version: 1.0.0
-  description: API REST disenada desde el dominio para gestionar usuarios y solicitudes academicas. La aplicacion valida roles de negocio en los casos de uso, pero no implementa autenticacion HTTP/JWT.
+  version: 1.1.0
+  description: API REST para gestionar usuarios y solicitudes academicas con arquitectura por capas, persistencia JPA y autenticacion JWT.
 servers:
   - url: http://localhost:8081
     description: Desarrollo local
 tags:
+  - name: Auth
+    description: Autenticacion y emision de JWT
   - name: Solicitudes
     description: Operaciones del agregado Solicitud
   - name: Usuarios
     description: Operaciones del agregado Usuario
   - name: Health
     description: Verificacion de disponibilidad de la API
+security:
+  - bearerAuth: []
 paths:
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Iniciar sesion
+      description: Valida email y password y devuelve un token JWT Bearer.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /api/v1/solicitudes:
     post:
       tags: [Solicitudes]
@@ -34,6 +61,10 @@ paths:
                 $ref: '#/components/schemas/SolicitudDetalleResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -68,6 +99,8 @@ paths:
                 $ref: '#/components/schemas/PaginaSolicitudesResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalError'
   /api/v1/solicitudes/{codigo}:
@@ -84,6 +117,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SolicitudDetalleResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -104,6 +139,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginaHistorialResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -130,14 +167,14 @@ paths:
                 $ref: '#/components/schemas/SolicitudDetalleResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalError'
   /api/v1/solicitudes/{codigo}/clasificacion:
     post:
       tags: [Solicitudes]
@@ -160,14 +197,14 @@ paths:
                 $ref: '#/components/schemas/SolicitudDetalleResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalError'
   /api/v1/solicitudes/{codigo}/prioridad:
     post:
       tags: [Solicitudes]
@@ -190,14 +227,14 @@ paths:
                 $ref: '#/components/schemas/SolicitudDetalleResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalError'
   /api/v1/solicitudes/{codigo}/atencion/inicio:
     post:
       tags: [Solicitudes]
@@ -220,14 +257,14 @@ paths:
                 $ref: '#/components/schemas/SolicitudDetalleResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalError'
   /api/v1/solicitudes/{codigo}/atencion/finalizacion:
     post:
       tags: [Solicitudes]
@@ -250,14 +287,14 @@ paths:
                 $ref: '#/components/schemas/SolicitudDetalleResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalError'
   /api/v1/solicitudes/{codigo}/cierre:
     post:
       tags: [Solicitudes]
@@ -280,19 +317,19 @@ paths:
                 $ref: '#/components/schemas/SolicitudDetalleResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalError'
   /api/v1/solicitudes/{codigo}/cancelacion:
     post:
       tags: [Solicitudes]
       summary: Cancelar solicitud
-      description: Cancela una solicitud y registra el evento en el historial con fecha y observacion.
+      description: Cancela una solicitud y registra el evento en el historial.
       parameters:
         - $ref: '#/components/parameters/CodigoSolicitud'
       requestBody:
@@ -310,12 +347,14 @@ paths:
                 $ref: '#/components/schemas/SolicitudDetalleResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalError'
   /api/v1/usuarios:
     post:
       tags: [Usuarios]
@@ -336,8 +375,8 @@ paths:
                 $ref: '#/components/schemas/UsuarioDetalleResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
     get:
       tags: [Usuarios]
       summary: Listar usuarios
@@ -354,8 +393,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginaUsuariosResponse'
-        '500':
-          $ref: '#/components/responses/InternalError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/usuarios/{id}:
+    get:
+      tags: [Usuarios]
+      summary: Consultar usuario por id
+      description: Retorna el detalle de un usuario.
+      parameters:
+        - $ref: '#/components/parameters/IdUsuario'
+      responses:
+        '200':
+          description: Usuario encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsuarioDetalleResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/v1/solicitudes/gui11/estado-prioridad/{estado}:
     get:
       tags: [Solicitudes]
@@ -377,8 +434,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginaSolicitudesResponse'
-        '500':
-          $ref: '#/components/responses/InternalError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /api/v1/solicitudes/gui11/codigo:
     get:
       tags: [Solicitudes]
@@ -399,8 +456,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginaSolicitudesResponse'
-        '500':
-          $ref: '#/components/responses/InternalError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /api/v1/solicitudes/gui11/activas:
     get:
       tags: [Solicitudes]
@@ -416,8 +473,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginaSolicitudesResponse'
-        '500':
-          $ref: '#/components/responses/InternalError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /api/v1/solicitudes/gui11/pendientes-alta:
     get:
       tags: [Solicitudes]
@@ -433,26 +490,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginaSolicitudesResponse'
-        '500':
-          $ref: '#/components/responses/InternalError'
-  /api/v1/usuarios/{id}:
-    get:
-      tags: [Usuarios]
-      summary: Consultar usuario por id
-      description: Retorna el detalle de un usuario.
-      parameters:
-        - $ref: '#/components/parameters/IdUsuario'
-      responses:
-        '200':
-          description: Usuario encontrado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UsuarioDetalleResponse'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /api/v1/health:
     get:
       tags: [Health]
@@ -468,7 +507,15 @@ paths:
                 properties:
                   status:
                     type: string
+                    example: UP
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   parameters:
     CodigoSolicitud:
       name: codigo
@@ -566,6 +613,28 @@ components:
           schema:
             $ref: '#/components/schemas/ApiError'
   schemas:
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 1
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        tipo:
+          type: string
+          example: Bearer
+        expiresIn:
+          type: integer
+          format: int64
+          example: 900000
     CrearSolicitudRequest:
       type: object
       required: [estudianteId, canal, tipo, descripcion]
@@ -717,17 +786,13 @@ components:
             $ref: '#/components/schemas/SolicitudResumenResponse'
         pagina:
           type: integer
-          example: 0
         tamano:
           type: integer
-          example: 10
         totalElementos:
           type: integer
           format: int64
-          example: 57
         totalPaginas:
           type: integer
-          example: 6
         primera:
           type: boolean
         ultima:
@@ -754,17 +819,13 @@ components:
             $ref: '#/components/schemas/UsuarioResumenResponse'
         pagina:
           type: integer
-          example: 0
         tamano:
           type: integer
-          example: 10
         totalElementos:
           type: integer
           format: int64
-          example: 25
         totalPaginas:
           type: integer
-          example: 3
         primera:
           type: boolean
         ultima:
@@ -780,17 +841,13 @@ components:
             $ref: '#/components/schemas/HistorialResponse'
         pagina:
           type: integer
-          example: 0
         tamano:
           type: integer
-          example: 10
         totalElementos:
           type: integer
           format: int64
-          example: 12
         totalPaginas:
           type: integer
-          example: 2
         primera:
           type: boolean
         ultima:
@@ -816,28 +873,21 @@ components:
         campo:
           type: string
           nullable: true
-          example: descripcion
         mensaje:
           type: string
-          example: La descripcion debe tener entre 20 y 1000 caracteres
     ApiError:
       type: object
       properties:
         codigo:
           type: string
-          example: VALIDATION_ERROR
         mensaje:
           type: string
-          example: descripcion: La descripcion debe tener entre 20 y 1000 caracteres
         status:
           type: integer
-          example: 400
         error:
           type: string
-          example: Bad Request
         ruta:
           type: string
-          example: /api/v1/solicitudes
         timestamp:
           type: string
           format: date-time

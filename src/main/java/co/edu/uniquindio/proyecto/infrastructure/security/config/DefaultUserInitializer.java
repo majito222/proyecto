@@ -5,7 +5,6 @@ import co.edu.uniquindio.proyecto.domain.valueobject.TipoUsuario;
 import co.edu.uniquindio.proyecto.infrastructure.jpa.UsuarioEntity;
 import co.edu.uniquindio.proyecto.infrastructure.jpa.UsuarioJpaDataRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -14,30 +13,41 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DefaultUserInitializer implements CommandLineRunner {
 
-    @Qualifier("app.default-users-co.edu.uniquindio.proyecto.infrastructure.security.config.DefaultUserProperties")
     private final DefaultUserProperties props;
     private final UsuarioJpaDataRepository repository;
     private final PasswordEncoder encoder;
 
     @Override
     public void run(String... args) {
-        if (repository.count() == 0) {
-            props.getUsers().forEach(user -> {
+        normalizarPasswordsExistentes();
 
-                UsuarioEntity entity = new UsuarioEntity();
-                entity.setId("USR-" + Math.abs(user.getEmail().hashCode()));
-                entity.setNombre(user.getEmail().split("@")[0]);
-                entity.setEmail(user.getEmail());
-                entity.setPassword(encoder.encode(user.getPassword()));
-                entity.setTipo(TipoUsuario.valueOf(user.getTipo().toUpperCase()));
-                entity.setEstado(EstadoUsuario.ACTIVO);
-
-                repository.save(entity);
-
-                System.out.println("Usuario creado: " + user.getEmail());
-            });
-
-            System.out.println("Seed JWT completado!");
+        if (props.getUsers() == null || props.getUsers().isEmpty()) {
+            return;
         }
+
+        props.getUsers().forEach(user -> repository.findByEmail(user.getEmail()).orElseGet(() -> {
+            UsuarioEntity entity = new UsuarioEntity();
+            entity.setId(user.getId() == null || user.getId().isBlank()
+                    ? "USR-" + Math.abs(user.getEmail().hashCode())
+                    : user.getId());
+            entity.setNombre(user.getNombre() == null || user.getNombre().isBlank()
+                    ? user.getEmail().split("@")[0]
+                    : user.getNombre());
+            entity.setEmail(user.getEmail());
+            entity.setPassword(encoder.encode(user.getPassword()));
+            entity.setTipo(TipoUsuario.valueOf(user.getTipo().toUpperCase()));
+            entity.setEstado(EstadoUsuario.ACTIVO);
+            return repository.save(entity);
+        }));
+    }
+
+    private void normalizarPasswordsExistentes() {
+        repository.findAll().forEach(user -> {
+            String password = user.getPassword();
+            if (password == null || !password.startsWith("$2")) {
+                user.setPassword(encoder.encode(password == null || password.isBlank() ? "NO_AUTH" : password));
+                repository.save(user);
+            }
+        });
     }
 }

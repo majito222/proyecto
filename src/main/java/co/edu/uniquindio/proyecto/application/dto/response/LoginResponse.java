@@ -6,6 +6,7 @@ package co.edu.uniquindio.proyecto.application.dto.response;
 public record LoginResponse(
 
         String token,
-        String tipo
+        String tipo,
+        long expiresIn
 
 ) {}

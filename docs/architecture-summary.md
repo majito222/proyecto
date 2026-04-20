@@ -2,40 +2,83 @@
 
 ## Flujo principal
 
-El flujo implementado en la API sigue este recorrido:
+El recorrido principal del sistema es el siguiente:
 
 ```text
 Controller -> UseCase -> Domain -> Repository -> Adapter JPA -> Base de datos
 ```
 
-Descripcion por capa:
+Lectura del flujo:
 
-- `infrastructure/rest`: recibe la peticion HTTP, valida el body con `@Valid`, delega a casos de uso y transforma la salida a DTOs.
-- `application`: coordina la operacion de negocio. Los casos de uso consultan repositorios, invocan metodos del agregado y guardan cambios.
-- `domain`: concentra entidades, value objects, excepciones y reglas de negocio. Aqui viven las invariantes del agregado `Solicitud` y las capacidades del `Usuario`.
-- `infrastructure/jpa`: implementa los puertos de repositorio con `JpaRepository`, entidades persistentes separadas y mappers entre modelo de dominio y modelo relacional.
+1. El cliente consume la API REST.
+2. El controller recibe el request y valida DTOs con `@Valid`.
+3. El caso de uso coordina la operacion.
+4. El dominio aplica reglas e invariantes.
+5. El repositorio del dominio define el contrato.
+6. El adapter JPA implementa ese contrato y persiste en H2.
+7. La respuesta vuelve al cliente en DTOs.
 
-## Separacion de capas
+## Separacion por capas
 
-Lo positivo:
+### `domain`
 
-- El dominio no tiene anotaciones de Spring ni JPA.
-- Las entidades persistentes (`SolicitudEntity`, `UsuarioEntity`) estan separadas del dominio.
-- Hay mappers para REST y para persistencia.
-- Los controladores no acceden directo a `JpaRepository`.
+Contiene el nucleo del negocio:
 
-Lo que rompe la pureza hexagonal:
+- `Solicitud` y `Usuario`
+- value objects como `CodigoSolicitud`, `IdUsuario`, `Email` y `PrioridadSolicitud`
+- excepciones de dominio
+- interfaces `SolicitudRepository` y `UsuarioRepository`
 
-- Los casos de uso en `application` usan `@Service` y `@Transactional`.
-- Los repositorios de `domain` exponen `Page` y `Pageable` de Spring.
-- `PaginaResponse` en `application` tambien depende de Spring Data.
-- Parte del mapeo DTO -> dominio sigue dentro de los controladores para path/query params y algunos request bodies.
+Aqui viven reglas como transiciones validas de estado, historial auditable y permisos funcionales por tipo de usuario.
 
-## Recomendacion estructural
+### `application`
 
-Para una version mas alineada con hexagonal estricta:
+Contiene los casos de uso del sistema:
 
-1. Mover anotaciones Spring a adaptadores/configuracion.
-2. Definir puertos de entrada y salida puros en `application`.
-3. Reemplazar `Page` y `Pageable` por modelos propios de paginacion.
-4. Centralizar conversiones REST en mappers o assemblers.
+- crear, consultar, clasificar, priorizar y cerrar solicitudes
+- listar usuarios
+- consultar historiales
+
+Esta capa usa los puertos del dominio para no depender directamente de JPA.
+
+### `infrastructure`
+
+Resuelve los detalles tecnicos:
+
+- `rest`: controllers HTTP
+- `mapper`: conversion DTO <-> dominio
+- `jpa`: entidades persistentes, repositorios Spring Data y adapters
+- `security`: Spring Security, login y JWT
+- `exception`: manejo global de errores HTTP
+
+## Seguridad dentro del flujo
+
+Con la version actual, el flujo protegido queda asi:
+
+```text
+Request -> JwtAuthenticationFilter -> SecurityContext -> Controller -> UseCase -> Domain
+```
+
+Eso significa que antes de entrar al controller:
+
+- se revisa el header `Authorization`
+- se valida el JWT
+- se carga el usuario por email
+- se registra la autenticacion en el contexto de Spring Security
+
+Luego, los casos de uso vuelven a aplicar validaciones funcionales por rol del dominio.
+
+## Fortalezas actuales
+
+- Dominio separado de JPA y HTTP en entidades.
+- Entidades persistentes separadas del modelo de negocio.
+- Controllers relativamente delgados.
+- Mappers dedicados para REST y persistencia.
+- Seguridad JWT integrada sin sesiones en servidor.
+
+## Puntos a mejorar
+
+- `application` sigue usando `@Service` y `@Transactional`.
+- Los puertos de dominio exponen `Page` y `Pageable` de Spring.
+- Parte del mapeo de path/query params sigue en controllers.
+- La autorizacion HTTP todavia es general por autenticacion; las reglas finas de rol siguen principalmente en casos de uso.

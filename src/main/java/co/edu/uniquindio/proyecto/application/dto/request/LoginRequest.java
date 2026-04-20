@@ -1,5 +1,6 @@
 package co.edu.uniquindio.proyecto.application.dto.request;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 /**
@@ -7,7 +8,11 @@ import jakarta.validation.constraints.NotBlank;
  */
 public record LoginRequest(
 
-        @NotBlank(message = "El ID del usuario es requerido")
-        String usuarioId
+        @NotBlank(message = "El email es requerido")
+        @Email(message = "El email debe ser valido")
+        String email,
+
+        @NotBlank(message = "La contrasena es requerida")
+        String password
 
 ) {}

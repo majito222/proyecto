@@ -1,10 +1,10 @@
 # Sistema de Triage y Gestion de Solicitudes Academicas
 
-API REST construida con Spring Boot para gestionar usuarios y solicitudes academicas. El proyecto adopta una separacion por capas inspirada en arquitectura hexagonal y DDD: dominio, casos de uso, adaptadores REST y persistencia JPA.
+API REST construida con Spring Boot para gestionar solicitudes academicas, usuarios y su ciclo de atencion. El sistema centraliza el registro, clasificacion, priorizacion, asignacion, seguimiento y cierre de solicitudes, manteniendo historial y reglas de negocio por rol.
 
 ## Arquitectura
 
-Estructura principal:
+El proyecto sigue una separacion por capas inspirada en arquitectura hexagonal:
 
 ```text
 co.edu.uniquindio.proyecto
@@ -21,30 +21,32 @@ co.edu.uniquindio.proyecto
    |- rest
    |- mapper
    |- jpa
+   |- security
    `- exception
 ```
 
 Flujo principal:
 
 ```text
-Controller -> UseCase -> Repository (puerto) -> Adapter JPA -> Base de datos
-                     -> Domain
+Controller -> UseCase -> Domain -> Repository (puerto) -> Adapter JPA -> Base de datos
 ```
 
-Separacion actual:
+Resumen por capa:
 
-- `domain`: entidades, value objects, reglas e interfaces de repositorio.
-- `application`: orquestacion de casos de uso.
-- `infrastructure`: controladores REST, mappers, manejo de excepciones y persistencia JPA.
+- `domain`: entidades, value objects, invariantes y contratos de repositorio.
+- `application`: casos de uso que orquestan operaciones del sistema.
+- `infrastructure`: API REST, persistencia JPA, seguridad JWT, mappers y manejo de errores.
 
-Nota tecnica: el proyecto sigue la intencion hexagonal, pero hoy `application` y parte de `domain` todavia dependen de tipos de Spring (`@Service`, `@Transactional`, `Page`, `Pageable`).
+Nota tecnica: la intencion hexagonal esta bien marcada, aunque `application` y algunos puertos de `domain` todavia usan tipos de Spring como `@Service`, `@Transactional`, `Page` y `Pageable`.
 
 ## Tecnologias
 
 - Java 25
-- Spring Boot
+- Spring Boot 3.3
 - Spring Web MVC
 - Spring Data JPA
+- Spring Security
+- JWT con `jjwt` y firma HS256
 - Bean Validation
 - H2 Database
 - MySQL Connector/J
@@ -60,7 +62,7 @@ Requisitos:
 - JDK 25
 - Gradle Wrapper
 
-Comandos:
+Levantar la aplicacion:
 
 ```bash
 ./gradlew bootRun
@@ -72,19 +74,53 @@ En Windows:
 .\gradlew.bat bootRun
 ```
 
-Pruebas:
+Ejecutar pruebas:
 
 ```bash
 ./gradlew test
 ```
 
-Puertos y utilidades:
+Utilidades:
 
 - API: `http://localhost:8081`
 - Swagger UI: `http://localhost:8081/swagger-ui.html`
 - H2 Console: `http://localhost:8081/h2-console`
 
+## Seguridad
+
+La API implementa autenticacion stateless con Spring Security + JWT.
+
+Flujo:
+
+1. `POST /api/auth/login` recibe `email` y `password`.
+2. `AuthenticationManager` valida credenciales contra usuarios guardados en BD.
+3. `JwtService` genera un token firmado con HS256.
+4. El cliente envia `Authorization: Bearer <token>`.
+5. `JwtAuthenticationFilter` valida el token y carga el usuario autenticado.
+
+Rutas publicas:
+
+- `POST /api/auth/login`
+- `/swagger-ui/**`
+- `/v3/api-docs/**`
+- `/h2-console/**`
+
+Rutas protegidas:
+
+- `/api/v1/**`
+
+Credenciales de desarrollo configuradas:
+
+- `security.admin@uq.edu.co` / `Admin123*`
+- `security.funcionario@uq.edu.co` / `Func123*`
+
+Recomendacion: para un entorno mas cercano a produccion, mover `jwt.secret` y credenciales de arranque a variables de entorno.
+
 ## Endpoints principales
+
+Autenticacion:
+
+- `POST /api/auth/login`
 
 Usuarios:
 
@@ -116,31 +152,19 @@ Consultas adicionales:
 
 El detalle completo esta en [docs/endpoints.md](/C:/Users/santi/Documents/GitHub/proyecto/docs/endpoints.md).
 
-## Seguridad
+## Ejemplos
 
-Estado actual:
-
-- No hay `spring-security` en dependencias.
-- No existe `SecurityFilterChain`.
-- No existe `/auth/login`.
-- No hay JWT ni cifrado BCrypt implementado.
-
-Eso significa que la API actual funciona sin autenticacion ni autorizacion a nivel HTTP. El resumen tecnico esta en [docs/security-summary.md](/C:/Users/santi/Documents/GitHub/proyecto/docs/security-summary.md).
-
-## Ejemplo de request/response
-
-Crear usuario:
+Login:
 
 ```http
-POST /api/v1/usuarios
+POST /api/auth/login
 Content-Type: application/json
 ```
 
 ```json
 {
-  "nombre": "Ana Perez",
-  "email": "ana.perez@uqvirtual.edu.co",
-  "tipo": "ESTUDIANTE"
+  "email": "security.admin@uq.edu.co",
+  "password": "Admin123*"
 }
 ```
 
@@ -148,11 +172,9 @@ Respuesta:
 
 ```json
 {
-  "id": "123456",
-  "nombre": "Ana Perez",
-  "email": "ana.perez@uqvirtual.edu.co",
-  "tipo": "ESTUDIANTE",
-  "estado": "ACTIVO"
+  "token": "<jwt>",
+  "tipo": "Bearer",
+  "expiresIn": 900000
 }
 ```
 
@@ -160,6 +182,7 @@ Crear solicitud:
 
 ```http
 POST /api/v1/solicitudes
+Authorization: Bearer <jwt>
 Content-Type: application/json
 ```
 
@@ -174,7 +197,9 @@ Content-Type: application/json
 
 ## Documentacion adicional
 
+- [Guia Entrega 02](/C:/Users/santi/Documents/GitHub/proyecto/docs/guia-entrega-02.md)
 - [Resumen de arquitectura](/C:/Users/santi/Documents/GitHub/proyecto/docs/architecture-summary.md)
 - [Listado de endpoints](/C:/Users/santi/Documents/GitHub/proyecto/docs/endpoints.md)
 - [Trazabilidad de requisitos](/C:/Users/santi/Documents/GitHub/proyecto/docs/requirements-traceability.md)
 - [Resumen de seguridad](/C:/Users/santi/Documents/GitHub/proyecto/docs/security-summary.md)
+- [OpenAPI](/C:/Users/santi/Documents/GitHub/proyecto/docs/api/openapi.yaml)

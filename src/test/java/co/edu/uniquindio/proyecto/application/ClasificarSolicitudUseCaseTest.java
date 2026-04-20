@@ -33,6 +33,8 @@ class ClasificarSolicitudUseCaseTest {
 
         when(solicitudRepository.buscarPorCodigo(codigo)).thenReturn(solicitudMock);
         when(usuarioRepository.buscarPorId(funcionarioId)).thenReturn(funcionarioMock);
+        when(funcionarioMock.puedeAtenderSolicitudes()).thenReturn(true);
+        when(funcionarioMock.getId()).thenReturn(funcionarioId);
         when(solicitudRepository.guardar(any())).thenReturn(solicitudMock);
 
         // WHEN

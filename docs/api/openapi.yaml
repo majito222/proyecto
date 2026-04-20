@@ -2,17 +2,17 @@ openapi: 3.0.3
 info:
   title: API de Gestion de Solicitudes Academicas
   version: 1.0.0
-  description: API REST disenada desde el dominio para gestionar usuarios y solicitudes academicas.
+  description: API REST disenada desde el dominio para gestionar usuarios y solicitudes academicas. La aplicacion valida roles de negocio en los casos de uso, pero no implementa autenticacion HTTP/JWT.
 servers:
   - url: http://localhost:8081
     description: Desarrollo local
-security:
-  - bearerAuth: []
 tags:
   - name: Solicitudes
     description: Operaciones del agregado Solicitud
   - name: Usuarios
     description: Operaciones del agregado Usuario
+  - name: Health
+    description: Verificacion de disponibilidad de la API
 paths:
   /api/v1/solicitudes:
     post:
@@ -455,10 +455,9 @@ paths:
           $ref: '#/components/responses/InternalError'
   /api/v1/health:
     get:
-      tags: [Usuarios]
+      tags: [Health]
       summary: Health check
       description: Verifica que el adaptador HTTP este disponible.
-      security: []
       responses:
         '200':
           description: Aplicacion disponible
@@ -566,11 +565,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ApiError'
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
   schemas:
     CrearSolicitudRequest:
       type: object

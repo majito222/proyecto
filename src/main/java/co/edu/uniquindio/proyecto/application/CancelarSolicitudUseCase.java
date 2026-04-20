@@ -2,6 +2,7 @@ package co.edu.uniquindio.proyecto.application;
 
 import co.edu.uniquindio.proyecto.domain.entity.Solicitud;
 import co.edu.uniquindio.proyecto.domain.entity.Usuario;
+import co.edu.uniquindio.proyecto.domain.exception.RolNoAutorizadoException;
 import co.edu.uniquindio.proyecto.domain.repository.SolicitudRepository;
 import co.edu.uniquindio.proyecto.domain.repository.UsuarioRepository;
 import co.edu.uniquindio.proyecto.domain.valueobject.CodigoSolicitud;
@@ -24,6 +25,10 @@ public class CancelarSolicitudUseCase {
 
         Solicitud solicitud = solicitudRepository.buscarPorCodigo(solicitudId);
         Usuario responsable = usuarioRepository.buscarPorId(responsableId);
+
+        if (!responsable.puedeAtenderSolicitudes() && !responsable.puedeAdministrarSolicitudes()) {
+            throw new RolNoAutorizadoException("Solo un funcionario o administrador activo puede cancelar solicitudes");
+        }
 
         solicitud.cancelarSolicitud(responsable.getId(), observacion);
 

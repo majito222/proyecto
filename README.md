@@ -1,160 +1,180 @@
-# 📘 Sistema de Triage y Gestión de Solicitudes Académicas
+# Sistema de Triage y Gestion de Solicitudes Academicas
 
-## 👥 Integrantes
+API REST construida con Spring Boot para gestionar usuarios y solicitudes academicas. El proyecto adopta una separacion por capas inspirada en arquitectura hexagonal y DDD: dominio, casos de uso, adaptadores REST y persistencia JPA.
 
-* Mariajose Valencia Diaz
-* Santiago Marín Serna
-* Juan Esteban Cuervo
+## Arquitectura
 
-Curso: Programación Avanzada
+Estructura principal:
 
-Programa: Ingeniería de Sistemas y Computación
-
-Universidad del Quindío
-
----
-
-# 🎯 Contexto del Proyecto
-
-El Programa de Ingeniería de Sistemas y Computación gestiona múltiples solicitudes académicas provenientes de diferentes canales (CSU, correo, SAC, telefónico, entre otros). Actualmente, estas solicitudes carecen de una estructura unificada, mecanismos formales de clasificación y trazabilidad clara, generando ineficiencia operativa.
-
-Este proyecto tiene como propósito diseñar y materializar el núcleo del dominio de un Sistema de Triage y Gestión de Solicitudes Académicas aplicando principios de:
-
-* Arquitectura Empresarial
-* Domain-Driven Design (DDD)
-* Modelado de Dominio
-* Pruebas Unitarias del Dominio
-
----
-
-# 🏗 Arquitectura del Dominio
-
-La solución implementa una arquitectura orientada al dominio con separación clara entre:
-
-```
+```text
 co.edu.uniquindio.proyecto
-└── domain
-    ├── entity
-    ├── valueobject
-    ├── exception
-    └── service
+|- domain
+|  |- entity
+|  |- valueobject
+|  |- exception
+|  |- repository
+|  `- service
+|- application
+|  |- dto
+|  `- use cases
+`- infrastructure
+   |- rest
+   |- mapper
+   |- jpa
+   `- exception
 ```
 
-No existen dependencias con infraestructura, bases de datos ni frameworks externos en la capa de dominio.
+Flujo principal:
 
----
-
-# 🧠 Modelo de Dominio
-
-## 🔷 Agregado Raíz
-
-### Solicitud
-
-Responsable de:
-
-* Gestionar el ciclo de vida
-* Proteger invariantes
-* Registrar historial auditable
-* Controlar clasificación y priorización
-
-Estados soportados:
-
-```
-REGISTRADA → CLASIFICADA → EN_ATENCION → ATENDIDA → CERRADA
+```text
+Controller -> UseCase -> Repository (puerto) -> Adapter JPA -> Base de datos
+                     -> Domain
 ```
 
----
+Separacion actual:
 
-## 🔷 Entidades
+- `domain`: entidades, value objects, reglas e interfaces de repositorio.
+- `application`: orquestacion de casos de uso.
+- `infrastructure`: controladores REST, mappers, manejo de excepciones y persistencia JPA.
 
-* Solicitud (Aggregate Root)
-* Usuario
-* EventoHistorial
+Nota tecnica: el proyecto sigue la intencion hexagonal, pero hoy `application` y parte de `domain` todavia dependen de tipos de Spring (`@Service`, `@Transactional`, `Page`, `Pageable`).
 
----
+## Tecnologias
 
-## 🔷 Value Objects
+- Java 25
+- Spring Boot
+- Spring Web MVC
+- Spring Data JPA
+- Bean Validation
+- H2 Database
+- MySQL Connector/J
+- Springdoc OpenAPI
+- MapStruct
+- Lombok
+- Gradle
 
-* CodigoSolicitud
-* IdUsuario
-* Email
-* DescripcionSolicitud
-* PrioridadSolicitud
-* TipoSolicitud
-* TipoCanal
-* EstadoSolicitud
-* TipoUsuario
-* EstadoUsuario
+## Ejecucion
 
-Todos los Value Objects son:
+Requisitos:
 
-* Inmutables
-* Auto-validados
-* Comparables por valor
+- JDK 25
+- Gradle Wrapper
 
----
+Comandos:
 
-# 📜 Reglas de Negocio Implementadas
-
-* No se puede realizar una transición de estado inválida.
-* No se puede cerrar una solicitud si no está en estado ATENDIDA.
-* Una solicitud cerrada no puede modificarse.
-* Toda acción relevante genera un evento en el historial.
-* El historial no puede modificarse externamente.
-* Los Value Objects no pueden crearse en estado inválido.
-
-Cada regla está encapsulada en el dominio y validada mediante pruebas unitarias.
-
----
-
-# 🧪 Pruebas Unitarias
-
-Se implementaron pruebas siguiendo el patrón AAA (Arrange, Act, Assert).
-
-Cobertura:
-
-* Validación de Value Objects
-* Cambios de estado en entidades
-* Invariantes del agregado
-* Transiciones válidas e inválidas
-* Protección contra modificación externa del historial
-
-Todas las pruebas deben ejecutarse en verde.
-
----
-
-# ▶️ Cómo ejecutar las pruebas
-
-Desde la raíz del proyecto:
-
-Windows:
-
-```
-gradlew test
+```bash
+./gradlew bootRun
 ```
 
-Mac/Linux:
+En Windows:
 
+```powershell
+.\gradlew.bat bootRun
 ```
+
+Pruebas:
+
+```bash
 ./gradlew test
 ```
 
-O directamente desde IntelliJ ejecutando la carpeta `src/test/java`.
+Puertos y utilidades:
 
----
+- API: `http://localhost:8081`
+- Swagger UI: `http://localhost:8081/swagger-ui.html`
+- H2 Console: `http://localhost:8081/h2-console`
 
-# 📂 Estructura de Entrega
+## Endpoints principales
 
-* Código fuente en `src/main/java`
-* Pruebas unitarias en `src/test/java`
-* Documentación UML en carpeta `/docs`
-* Glosario y reglas documentadas en `/docs`
-* Este README como guía principal del proyecto
+Usuarios:
 
----
+- `POST /api/v1/usuarios`
+- `GET /api/v1/usuarios`
+- `GET /api/v1/usuarios/{id}`
 
-# 🚀 Estado Actual
+Solicitudes:
 
-Entrega 01 – Modelado del Dominio y Materialización en Código.
+- `POST /api/v1/solicitudes`
+- `GET /api/v1/solicitudes`
+- `GET /api/v1/solicitudes/{codigo}`
+- `GET /api/v1/solicitudes/{codigo}/historial`
+- `PUT /api/v1/solicitudes/{codigo}/responsable`
+- `POST /api/v1/solicitudes/{codigo}/clasificacion`
+- `POST /api/v1/solicitudes/{codigo}/prioridad`
+- `POST /api/v1/solicitudes/{codigo}/atencion/inicio`
+- `POST /api/v1/solicitudes/{codigo}/atencion/finalizacion`
+- `POST /api/v1/solicitudes/{codigo}/cierre`
+- `POST /api/v1/solicitudes/{codigo}/cancelacion`
 
-El dominio está completamente modelado, implementado y validado mediante pruebas unitarias, listo para evolucionar hacia las capas de aplicación, persistencia y presentación en las siguientes entregas.
+Consultas adicionales:
+
+- `GET /api/v1/solicitudes/gui11/estado-prioridad/{estado}`
+- `GET /api/v1/solicitudes/gui11/codigo`
+- `GET /api/v1/solicitudes/gui11/activas`
+- `GET /api/v1/solicitudes/gui11/pendientes-alta`
+- `GET /api/v1/health`
+
+El detalle completo esta en [docs/endpoints.md](/C:/Users/santi/Documents/GitHub/proyecto/docs/endpoints.md).
+
+## Seguridad
+
+Estado actual:
+
+- No hay `spring-security` en dependencias.
+- No existe `SecurityFilterChain`.
+- No existe `/auth/login`.
+- No hay JWT ni cifrado BCrypt implementado.
+
+Eso significa que la API actual funciona sin autenticacion ni autorizacion a nivel HTTP. El resumen tecnico esta en [docs/security-summary.md](/C:/Users/santi/Documents/GitHub/proyecto/docs/security-summary.md).
+
+## Ejemplo de request/response
+
+Crear usuario:
+
+```http
+POST /api/v1/usuarios
+Content-Type: application/json
+```
+
+```json
+{
+  "nombre": "Ana Perez",
+  "email": "ana.perez@uqvirtual.edu.co",
+  "tipo": "ESTUDIANTE"
+}
+```
+
+Respuesta:
+
+```json
+{
+  "id": "123456",
+  "nombre": "Ana Perez",
+  "email": "ana.perez@uqvirtual.edu.co",
+  "tipo": "ESTUDIANTE",
+  "estado": "ACTIVO"
+}
+```
+
+Crear solicitud:
+
+```http
+POST /api/v1/solicitudes
+Content-Type: application/json
+```
+
+```json
+{
+  "estudianteId": "123456",
+  "canal": "CORREO",
+  "tipo": "CONSULTA_ACADEMICA",
+  "descripcion": "Solicito revision del estado de mi homologacion para el periodo actual."
+}
+```
+
+## Documentacion adicional
+
+- [Resumen de arquitectura](/C:/Users/santi/Documents/GitHub/proyecto/docs/architecture-summary.md)
+- [Listado de endpoints](/C:/Users/santi/Documents/GitHub/proyecto/docs/endpoints.md)
+- [Trazabilidad de requisitos](/C:/Users/santi/Documents/GitHub/proyecto/docs/requirements-traceability.md)
+- [Resumen de seguridad](/C:/Users/santi/Documents/GitHub/proyecto/docs/security-summary.md)

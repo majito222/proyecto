@@ -2,6 +2,7 @@ package co.edu.uniquindio.proyecto.application;
 
 import co.edu.uniquindio.proyecto.domain.entity.Solicitud;
 import co.edu.uniquindio.proyecto.domain.entity.Usuario;
+import co.edu.uniquindio.proyecto.domain.exception.RolNoAutorizadoException;
 import co.edu.uniquindio.proyecto.domain.repository.SolicitudRepository;
 import co.edu.uniquindio.proyecto.domain.repository.UsuarioRepository;
 import co.edu.uniquindio.proyecto.domain.valueobject.CodigoSolicitud;
@@ -33,6 +34,10 @@ public class AsignarResponsableUseCase {
         // 1. Obtener entidades desde repositorios
         Solicitud solicitud = solicitudRepository.buscarPorCodigo(solicitudId);
         Usuario funcionario = usuarioRepository.buscarPorId(funcionarioId);
+
+        if (!funcionario.puedeAtenderSolicitudes()) {
+            throw new RolNoAutorizadoException("El responsable asignado debe ser un funcionario activo");
+        }
 
         // 2. Delegar comportamiento al dominio
         solicitud.asignarResponsable(funcionario.getId());

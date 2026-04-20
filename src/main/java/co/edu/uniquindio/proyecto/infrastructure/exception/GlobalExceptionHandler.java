@@ -6,6 +6,7 @@ import co.edu.uniquindio.proyecto.domain.exception.ReglaDominioException;
 import co.edu.uniquindio.proyecto.domain.exception.RolNoAutorizadoException;
 import co.edu.uniquindio.proyecto.domain.exception.SolicitudCerradaException;
 import co.edu.uniquindio.proyecto.domain.exception.TransicionEstadoInvalidaException;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -59,6 +60,22 @@ public class GlobalExceptionHandler {
         log.warn("Elemento no encontrado: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(buildError("NO_ENCONTRADO", ex.getMessage(), HttpStatus.NOT_FOUND, request));
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleEntityNotFound(EntityNotFoundException ex,
+                                                              HttpServletRequest request) {
+        log.warn("Entidad no encontrada: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(buildError("NO_ENCONTRADO", ex.getMessage(), HttpStatus.NOT_FOUND, request));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex,
+                                                               HttpServletRequest request) {
+        log.warn("Argumento invalido: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(buildError("ARGUMENTO_INVALIDO", ex.getMessage(), HttpStatus.BAD_REQUEST, request));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

@@ -45,7 +45,7 @@ paths:
     post:
       tags: [Solicitudes]
       summary: Crear solicitud
-      description: Registra una nueva solicitud academica.
+      description: Registra una nueva solicitud academica para el estudiante autenticado.
       requestBody:
         required: true
         content:
@@ -637,10 +637,8 @@ components:
           example: 900000
     CrearSolicitudRequest:
       type: object
-      required: [estudianteId, canal, tipo, descripcion]
+      required: [canal, tipo, descripcion]
       properties:
-        estudianteId:
-          type: string
         canal:
           type: string
           enum: [CSU, CORREO, SAC, TELEFONICO]
@@ -659,19 +657,15 @@ components:
           type: string
     ClasificarSolicitudRequest:
       type: object
-      required: [funcionarioId, tipo]
+      required: [tipo]
       properties:
-        funcionarioId:
-          type: string
         tipo:
           type: string
           enum: [REGISTRO_ASIGNATURA, HOMOLOGACION, CANCELACION, SOLICITUD_CUPO, CONSULTA_ACADEMICA]
     PriorizarSolicitudRequest:
       type: object
-      required: [funcionarioId, nivel, justificacion]
+      required: [nivel, justificacion]
       properties:
-        funcionarioId:
-          type: string
         nivel:
           type: string
           enum: [BAJA, MEDIA, ALTA, CRITICA]
@@ -681,39 +675,29 @@ components:
           maxLength: 500
     IniciarAtencionRequest:
       type: object
-      required: [funcionarioId]
-      properties:
-        funcionarioId:
-          type: string
+      properties: {}
     MarcarAtendidaRequest:
       type: object
-      required: [funcionarioId]
-      properties:
-        funcionarioId:
-          type: string
+      properties: {}
     CerrarSolicitudRequest:
       type: object
-      required: [administradorId, observacion]
+      required: [observacion]
       properties:
-        administradorId:
-          type: string
         observacion:
           type: string
           minLength: 10
           maxLength: 500
     CancelarSolicitudRequest:
       type: object
-      required: [responsableId, observacion]
+      required: [observacion]
       properties:
-        responsableId:
-          type: string
         observacion:
           type: string
           minLength: 10
           maxLength: 500
     CrearUsuarioRequest:
       type: object
-      required: [nombre, email, tipo]
+      required: [nombre, email, password, tipo]
       properties:
         nombre:
           type: string
@@ -722,6 +706,10 @@ components:
         email:
           type: string
           format: email
+        password:
+          type: string
+          minLength: 8
+          maxLength: 100
         tipo:
           type: string
           enum: [ESTUDIANTE, FUNCIONARIO, ADMINISTRADOR]

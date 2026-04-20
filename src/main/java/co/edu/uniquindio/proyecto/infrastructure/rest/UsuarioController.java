@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,7 +37,6 @@ import java.net.URI;
 @RestController
 @RequestMapping("/api/v1/usuarios")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 @Tag(name = "Usuarios", description = "Operaciones REST del agregado Usuario")
 public class UsuarioController {
 
@@ -54,6 +53,7 @@ public class UsuarioController {
             @ApiResponse(responseCode = "400", description = "Datos invalidos",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<UsuarioDetalleResponse> crearUsuario(
             @Valid @RequestBody CrearUsuarioRequest request) {
 
@@ -61,6 +61,7 @@ public class UsuarioController {
         var usuario = crearUsuarioUseCase.ejecutar(
                 datos.nombre(),
                 datos.email(),
+                datos.password(),
                 datos.tipo()
         );
 
@@ -76,6 +77,7 @@ public class UsuarioController {
 
     @GetMapping
     @Operation(summary = "Listar usuarios con paginacion")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<PaginaResponse<UsuarioResumenResponse>> listarUsuarios(
             @RequestParam(defaultValue = "0") int pagina,
             @RequestParam(defaultValue = "10") int tamano,
@@ -94,6 +96,7 @@ public class UsuarioController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Consultar usuario por id")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<UsuarioDetalleResponse> obtenerPorId(
             @PathVariable String id) {
 

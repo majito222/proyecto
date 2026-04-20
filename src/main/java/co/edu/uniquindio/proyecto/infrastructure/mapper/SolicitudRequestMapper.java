@@ -15,7 +15,6 @@ public class SolicitudRequestMapper {
      */
     public SolicitudData toDomainData(CrearSolicitudRequest request) {
         return new SolicitudData(
-            new IdUsuario(request.estudianteId()),
             convertirCanal(request.canal()),
             convertirTipo(request.tipo()),
             new DescripcionSolicitud(request.descripcion())
@@ -44,7 +43,6 @@ public class SolicitudRequestMapper {
      * Record interno para agrupar datos de solicitud.
      */
     public record SolicitudData(
-        IdUsuario estudianteId,
         TipoCanal canal,
         TipoSolicitud tipo,
         DescripcionSolicitud descripcion

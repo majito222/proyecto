@@ -97,6 +97,7 @@ Flujo:
 3. `JwtService` genera un token firmado con HS256.
 4. El cliente envia `Authorization: Bearer <token>`.
 5. `JwtAuthenticationFilter` valida el token y carga el usuario autenticado.
+6. Los endpoints sensibles toman el actor desde el usuario autenticado y no desde IDs enviados por el cliente.
 
 Rutas publicas:
 
@@ -108,6 +109,13 @@ Rutas publicas:
 Rutas protegidas:
 
 - `/api/v1/**`
+
+Roles principales:
+
+- `ESTUDIANTE`: crear solicitudes.
+- `FUNCIONARIO`: clasificar, priorizar e iniciar/finalizar atencion.
+- `ADMINISTRADOR`: crear usuarios, consultar usuarios, asignar responsable y cerrar solicitudes.
+- `FUNCIONARIO` o `ADMINISTRADOR`: cancelar solicitudes.
 
 Credenciales de desarrollo configuradas:
 
@@ -188,11 +196,21 @@ Content-Type: application/json
 
 ```json
 {
-  "estudianteId": "123456",
   "canal": "CORREO",
   "tipo": "CONSULTA_ACADEMICA",
   "descripcion": "Solicito revision del estado de mi homologacion para el periodo actual."
 }
+
+Crear usuario:
+
+```json
+{
+  "nombre": "Ana Perez",
+  "email": "ana@uq.edu.co",
+  "password": "AnaSegura123*",
+  "tipo": "ESTUDIANTE"
+}
+```
 ```
 
 ## Documentacion adicional

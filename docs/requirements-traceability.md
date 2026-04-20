@@ -1,73 +1,79 @@
 # Trazabilidad de Requisitos
 
-Este documento relaciona cada requisito funcional importante con su implementacion en controladores, casos de uso, dominio, persistencia, seguridad y documentacion.
+Este documento relaciona requisitos funcionales y tecnicos con su implementacion actual.
 
 ## RF-01 Registro de solicitudes
 
-- Endpoint: [SolicitudController.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/rest/SolicitudController.java:82)
-- Caso de uso: [CrearSolicitudUseCase.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/CrearSolicitudUseCase.java:18)
-- Dominio: [Solicitud.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/domain/entity/Solicitud.java:34)
-- Reglas: [reglas-negocio.md](/C:/Users/santi/Documents/GitHub/proyecto/docs/reglas-negocio.md:27)
-- OpenAPI: [openapi.yaml](/C:/Users/santi/Documents/GitHub/proyecto/docs/api/openapi.yaml:1)
+- Endpoint: [SolicitudController](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/rest/SolicitudController.java)
+- Caso de uso: [CrearSolicitudUseCase](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/CrearSolicitudUseCase.java)
+- Dominio: [Solicitud](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/domain/entity/Solicitud.java)
+- Mapper request: [SolicitudRequestMapper](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/mapper/SolicitudRequestMapper.java)
+- Contrato API: [openapi.yaml](/C:/Users/santi/Documents/GitHub/proyecto/docs/api/openapi.yaml)
+
+Nota: la solicitud se registra para el estudiante autenticado; el actor ya no viaja en el body.
 
 ## RF-02 Clasificacion de solicitudes
 
-- Endpoint: [SolicitudController.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/rest/SolicitudController.java:117)
-- Caso de uso: [ClasificarSolicitudUseCase.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/ClasificarSolicitudUseCase.java:18)
-- Dominio: [Solicitud.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/domain/entity/Solicitud.java:127)
+- Endpoint: [SolicitudController](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/rest/SolicitudController.java)
+- Caso de uso: [ClasificarSolicitudUseCase](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/ClasificarSolicitudUseCase.java)
+- Dominio: [Solicitud](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/domain/entity/Solicitud.java)
 
 ## RF-03 Priorizacion de solicitudes
 
-- Endpoint: [SolicitudController.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/rest/SolicitudController.java:132)
-- Caso de uso: [PriorizarSolicitudUseCase.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/PriorizarSolicitudUseCase.java:18)
-- Dominio: [Solicitud.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/domain/entity/Solicitud.java:139)
-- Regla de prioridad: [reglas-negocio.md](/C:/Users/santi/Documents/GitHub/proyecto/docs/reglas-negocio.md:151)
+- Endpoint: [SolicitudController](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/rest/SolicitudController.java)
+- Caso de uso: [PriorizarSolicitudUseCase](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/PriorizarSolicitudUseCase.java)
+- Dominio: [PrioridadSolicitud](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/domain/valueobject/PrioridadSolicitud.java), [Solicitud](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/domain/entity/Solicitud.java)
 
 ## RF-04 Gestion del ciclo de vida
 
-- Inicio de atencion: [SolicitudController.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/rest/SolicitudController.java:149), [IniciarAtencionUseCase.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/IniciarAtencionUseCase.java:17), [Solicitud.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/domain/entity/Solicitud.java:161)
-- Marcado como atendida: [SolicitudController.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/rest/SolicitudController.java:163), [MarcarAtendidaUseCase.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/MarcarAtendidaUseCase.java:18), [Solicitud.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/domain/entity/Solicitud.java:172)
-- Reglas: [reglas-negocio.md](/C:/Users/santi/Documents/GitHub/proyecto/docs/reglas-negocio.md:28)
+- Inicio de atencion: [IniciarAtencionUseCase](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/IniciarAtencionUseCase.java)
+- Finalizacion de atencion: [MarcarAtendidaUseCase](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/MarcarAtendidaUseCase.java)
+- Cierre: [CerrarSolicitudUseCase](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/CerrarSolicitudUseCase.java)
+- Cancelacion: [CancelarSolicitudUseCase](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/CancelarSolicitudUseCase.java)
+- Reglas de estado: [Solicitud](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/domain/entity/Solicitud.java)
 
 ## RF-05 Asignacion de responsable
 
-- Endpoint: [SolicitudController.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/rest/SolicitudController.java:103)
-- Caso de uso: [AsignarResponsableUseCase.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/AsignarResponsableUseCase.java:17)
-- Dominio: [Solicitud.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/domain/entity/Solicitud.java:150)
-- Persistencia: [SolicitudJpaRepositoryImpl.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/jpa/SolicitudJpaRepositoryImpl.java:21)
+- Endpoint: [SolicitudController](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/rest/SolicitudController.java)
+- Caso de uso: [AsignarResponsableUseCase](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/AsignarResponsableUseCase.java)
+- Persistencia: [SolicitudJpaRepositoryImpl](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/jpa/SolicitudJpaRepositoryImpl.java)
 
 ## RF-06 Historial auditable
 
-- Endpoint: [SolicitudController.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/rest/SolicitudController.java:223)
-- Consulta con historial: [ConsultarSolicitudPorCodigoUseCase.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/ConsultarSolicitudPorCodigoUseCase.java:15)
-- Dominio: [Solicitud.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/domain/entity/Solicitud.java:209)
-- Persistencia: [SolicitudPersistenceMapper.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/jpa/SolicitudPersistenceMapper.java:14)
+- Endpoint: [SolicitudController](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/rest/SolicitudController.java)
+- Consulta enriquecida: [ConsultarSolicitudPorCodigoUseCase](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/ConsultarSolicitudPorCodigoUseCase.java)
+- Modelo de historial: [Historial](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/domain/valueobject/Historial.java)
+- Persistencia de historial: [SolicitudPersistenceMapper](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/jpa/SolicitudPersistenceMapper.java)
 
-## RF-07 Consultas y paginacion
+## RF-07 Consultas, filtros y paginacion
 
-- Listado filtrado: [SolicitudController.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/rest/SolicitudController.java:193), [ConsultarSolicitudesUseCase.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/ConsultarSolicitudesUseCase.java:15)
-- Consultas avanzadas: [ConsultarSolicitudesAvanzadasUseCase.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/ConsultarSolicitudesAvanzadasUseCase.java:15), [SolicitudJpaDataRepository.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/jpa/SolicitudJpaDataRepository.java:17)
-- Usuarios paginados: [UsuarioController.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/rest/UsuarioController.java:67), [ListarUsuariosUseCase.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/ListarUsuariosUseCase.java:11)
+- Listado de solicitudes: [ConsultarSolicitudesUseCase](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/ConsultarSolicitudesUseCase.java)
+- Consultas avanzadas: [ConsultarSolicitudesAvanzadasUseCase](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/ConsultarSolicitudesAvanzadasUseCase.java)
+- Repositorio JPA: [SolicitudJpaDataRepository](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/jpa/SolicitudJpaDataRepository.java)
+- Paginacion de usuarios: [ListarUsuariosUseCase](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/ListarUsuariosUseCase.java)
+- DTO de pagina: [PaginaResponse](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/dto/response/PaginaResponse.java)
 
-## RF-08 Cierre y cancelacion de solicitudes
+## RF-08 Usuarios
 
-- Cierre: [SolicitudController.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/rest/SolicitudController.java:177), [CerrarSolicitudUseCase.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/CerrarSolicitudUseCase.java:16), [Solicitud.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/domain/entity/Solicitud.java:183)
-- Cancelacion: [SolicitudController.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/rest/SolicitudController.java:190), [CancelarSolicitudUseCase.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/CancelarSolicitudUseCase.java:16), [Solicitud.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/domain/entity/Solicitud.java:194)
+- Creacion de usuario: [UsuarioController](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/rest/UsuarioController.java), [CrearUsuarioUseCase](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/CrearUsuarioUseCase.java)
+- Persistencia: [UsuarioJpaRepositoryImpl](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/jpa/UsuarioJpaRepositoryImpl.java)
+- Password hashing: [PasswordHasher](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/security/PasswordHasher.java), [PasswordHasherAdapter](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/security/service/PasswordHasherAdapter.java)
 
 ## RF-13 Seguridad JWT y control de acceso
 
-- Endpoint de autenticacion: [AuthController.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/rest/AuthController.java:17)
-- DTOs de autenticacion: [LoginRequest.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/dto/request/LoginRequest.java:1), [LoginResponse.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/dto/response/LoginResponse.java:1)
-- Servicio de login: [AuthService.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/security/service/AuthService.java:1)
-- Configuracion HTTP: [SecurityConfig.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/security/config/SecurityConfig.java:1)
-- Carga de usuarios: [SecurityServiceImpl.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/security/service/SecurityServiceImpl.java:1), [UsuarioJpaDataRepository.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/jpa/UsuarioJpaDataRepository.java:1)
-- Modelo de seguridad: [CustomUserDetails.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/security/CustomUserDetails.java:1)
-- JWT: [JwtService.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/security/jwt/JwtService.java:1), [JwtAuthenticationFilter.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/security/jwt/JwtAuthenticationFilter.java:1), [JwtConfig.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/security/config/JwtConfig.java:1)
-- Passwords de arranque: [DefaultUserInitializer.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/security/config/DefaultUserInitializer.java:1)
-- Reglas funcionales complementarias por rol: [Usuario.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/domain/entity/Usuario.java:41), [CrearSolicitudUseCase.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/CrearSolicitudUseCase.java:18), [CerrarSolicitudUseCase.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/application/CerrarSolicitudUseCase.java:16)
+- Endpoint de autenticacion: [AuthController](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/rest/AuthController.java)
+- Servicio de login: [AuthService](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/security/service/AuthService.java)
+- Configuracion de seguridad: [SecurityConfig](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/security/config/SecurityConfig.java)
+- Filtro JWT: [JwtAuthenticationFilter](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/security/jwt/JwtAuthenticationFilter.java)
+- Servicio JWT: [JwtService](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/security/jwt/JwtService.java)
+- User details: [CustomUserDetails](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/security/CustomUserDetails.java)
+- Manejo `401`: [RestAuthenticationEntryPoint](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/security/config/RestAuthenticationEntryPoint.java)
+- Manejo `403`: [RestAccessDeniedHandler](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/security/config/RestAccessDeniedHandler.java)
+- Usuarios iniciales y normalizacion: [DefaultUserInitializer](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/security/config/DefaultUserInitializer.java)
 
 ## Soporte transversal
 
-- Manejo de errores HTTP: [GlobalExceptionHandler.java](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/exception/GlobalExceptionHandler.java:20)
-- Contrato REST: [openapi.yaml](/C:/Users/santi/Documents/GitHub/proyecto/docs/api/openapi.yaml:1)
+- Manejo global de errores: [GlobalExceptionHandler](/C:/Users/santi/Documents/GitHub/proyecto/src/main/java/co/edu/uniquindio/proyecto/infrastructure/exception/GlobalExceptionHandler.java)
+- Contrato OpenAPI: [openapi.yaml](/C:/Users/santi/Documents/GitHub/proyecto/docs/api/openapi.yaml)
 - Resumen de arquitectura: [architecture-summary.md](/C:/Users/santi/Documents/GitHub/proyecto/docs/architecture-summary.md)
+- Resumen de seguridad: [security-summary.md](/C:/Users/santi/Documents/GitHub/proyecto/docs/security-summary.md)

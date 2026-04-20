@@ -17,6 +17,7 @@ public class UsuarioRequestMapper {
         return new UsuarioData(
             request.nombre(),
             new Email(request.email()),
+            request.password(),
             convertirTipo(request.tipo())
         );
     }
@@ -37,6 +38,7 @@ public class UsuarioRequestMapper {
     public record UsuarioData(
         String nombre,
         Email email,
+        String password,
         TipoUsuario tipo
     ) {}
 }

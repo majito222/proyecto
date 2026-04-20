@@ -5,8 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record CrearSolicitudRequest(
-        @NotBlank(message = "El ID del estudiante es requerido")
-        String estudianteId,
         @NotNull(message = "El canal es requerido")
         CanalSolicitud canal,
         @NotNull(message = "El tipo de solicitud es requerido")

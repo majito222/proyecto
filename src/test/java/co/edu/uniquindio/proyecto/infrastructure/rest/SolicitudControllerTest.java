@@ -22,7 +22,9 @@ import co.edu.uniquindio.proyecto.domain.valueobject.TipoSolicitud;
 import co.edu.uniquindio.proyecto.infrastructure.exception.GlobalExceptionHandler;
 import co.edu.uniquindio.proyecto.infrastructure.mapper.SolicitudMapper;
 import co.edu.uniquindio.proyecto.infrastructure.mapper.SolicitudRequestMapper;
+import co.edu.uniquindio.proyecto.infrastructure.security.CustomUserDetails;
 import co.edu.uniquindio.proyecto.infrastructure.security.jwt.JwtAuthenticationFilter;
+import co.edu.uniquindio.proyecto.infrastructure.jpa.UsuarioEntity;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -42,9 +44,12 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @WebMvcTest(SolicitudController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -112,7 +117,6 @@ class SolicitudControllerTest {
                 descripcion
         );
         var requestData = new SolicitudRequestMapper.SolicitudData(
-                estudianteId,
                 TipoCanal.CSU,
                 TipoSolicitud.CONSULTA_ACADEMICA,
                 descripcion
@@ -142,12 +146,12 @@ class SolicitudControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "estudianteId": "123456",
                                   "canal": "CSU",
                                   "tipo": "CONSULTA_ACADEMICA",
                                   "descripcion": "Necesito apoyo con una solicitud academica del semestre actual."
                                 }
-                                """))
+                                """)
+                        .with(authentication(authenticationFor("123456", "ana@uq.edu.co", "ESTUDIANTE"))))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", "http://localhost/api/v1/solicitudes/SOL-001"));
     }
@@ -158,10 +162,10 @@ class SolicitudControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "estudianteId": "",
                                   "descripcion": "corta"
                                 }
-                                """))
+                                """)
+                        .with(authentication(authenticationFor("123456", "ana@uq.edu.co", "ESTUDIANTE"))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.codigo").value("VALIDATION_ERROR"))
                 .andExpect(jsonPath("$.status").value(400))
@@ -233,5 +237,20 @@ class SolicitudControllerTest {
                 .andExpect(jsonPath("$.contenido[0].codigo").value("SOL-001"))
                 .andExpect(jsonPath("$.totalElementos").value(1))
                 .andExpect(jsonPath("$.primera").value(true));
+    }
+
+    private UsernamePasswordAuthenticationToken authenticationFor(String id, String email, String role) {
+        var usuario = new UsuarioEntity();
+        usuario.setId(id);
+        usuario.setEmail(email);
+        usuario.setPassword("$2a$10$abcdefghijklmnopqrstuv");
+        usuario.setTipo(co.edu.uniquindio.proyecto.domain.valueobject.TipoUsuario.valueOf(role));
+        usuario.setEstado(co.edu.uniquindio.proyecto.domain.valueobject.EstadoUsuario.ACTIVO);
+        var principal = new CustomUserDetails(usuario);
+        return new UsernamePasswordAuthenticationToken(
+                principal,
+                null,
+                java.util.List.of(new SimpleGrantedAuthority("ROLE_" + role))
+        );
     }
 }

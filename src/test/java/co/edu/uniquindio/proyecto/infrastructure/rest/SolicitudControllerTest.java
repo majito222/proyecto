@@ -14,6 +14,7 @@ import co.edu.uniquindio.proyecto.application.IniciarAtencionUseCase;
 import co.edu.uniquindio.proyecto.application.MarcarAtendidaUseCase;
 import co.edu.uniquindio.proyecto.application.PriorizarSolicitudUseCase;
 import co.edu.uniquindio.proyecto.domain.entity.Solicitud;
+import co.edu.uniquindio.proyecto.domain.exception.TransicionEstadoInvalidaException;
 import co.edu.uniquindio.proyecto.domain.valueobject.CodigoSolicitud;
 import co.edu.uniquindio.proyecto.domain.valueobject.DescripcionSolicitud;
 import co.edu.uniquindio.proyecto.domain.valueobject.IdUsuario;
@@ -237,6 +238,62 @@ class SolicitudControllerTest {
                 .andExpect(jsonPath("$.contenido[0].codigo").value("SOL-001"))
                 .andExpect(jsonPath("$.totalElementos").value(1))
                 .andExpect(jsonPath("$.primera").value(true));
+    }
+
+    @Test
+    void obtenerSolicitudNoEncontradaDebeRetornarNotFound() throws Exception {
+        when(consultarSolicitudPorCodigoUseCase.ejecutar(eq(new CodigoSolicitud("SOL-404"))))
+                .thenThrow(new java.util.NoSuchElementException("Solicitud no encontrada: SOL-404"));
+
+        mockMvc.perform(get("/api/v1/solicitudes/SOL-404"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.codigo").value("NO_ENCONTRADO"))
+                .andExpect(jsonPath("$.status").value(404));
+    }
+
+    @Test
+    void cerrarSolicitudConTransicionInvalidaDebeRetornarConflict() throws Exception {
+        when(cerrarSolicitudUseCase.ejecutar(
+                eq(new CodigoSolicitud("SOL-001")),
+                eq(new IdUsuario("900001")),
+                eq("La solicitud aun no se encuentra atendida.")
+        )).thenThrow(new TransicionEstadoInvalidaException("Solo solicitudes atendidas pueden cerrarse"));
+
+        mockMvc.perform(post("/api/v1/solicitudes/SOL-001/cierre")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "observacion": "La solicitud aun no se encuentra atendida."
+                                }
+                                """)
+                        .with(authentication(authenticationFor("900001", "security.admin@uq.edu.co", "ADMINISTRADOR"))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.codigo").value("TRANSICION_INVALIDA"))
+                .andExpect(jsonPath("$.status").value(409));
+    }
+
+    @Test
+    void consultarSolicitudesConArgumentoInvalidoDebeRetornarBadRequest() throws Exception {
+        when(consultarSolicitudesUseCase.ejecutar(eq("DESCONOCIDO"), eq("CSU"), any()))
+                .thenThrow(new IllegalArgumentException("Estado invalido: DESCONOCIDO"));
+
+        mockMvc.perform(get("/api/v1/solicitudes")
+                        .param("estado", "DESCONOCIDO")
+                        .param("canal", "CSU"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("ARGUMENTO_INVALIDO"))
+                .andExpect(jsonPath("$.status").value(400));
+    }
+
+    @Test
+    void obtenerSolicitudConErrorInesperadoDebeRetornarInternalServerError() throws Exception {
+        when(consultarSolicitudPorCodigoUseCase.ejecutar(eq(new CodigoSolicitud("SOL-500"))))
+                .thenThrow(new RuntimeException("Fallo inesperado"));
+
+        mockMvc.perform(get("/api/v1/solicitudes/SOL-500"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.codigo").value("INTERNAL_ERROR"))
+                .andExpect(jsonPath("$.status").value(500));
     }
 
     private UsernamePasswordAuthenticationToken authenticationFor(String id, String email, String role) {

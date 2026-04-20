@@ -142,6 +142,48 @@ class UsuarioControllerTest {
                 .andExpect(jsonPath("$.primera").value(true));
     }
 
+    @Test
+    void obtenerUsuarioNoEncontradoDebeRetornarNotFound() throws Exception {
+        when(consultarUsuarioPorIdUseCase.ejecutar(eq(new IdUsuario("999999"))))
+                .thenThrow(new java.util.NoSuchElementException("Usuario no encontrado: 999999"));
+
+        mockMvc.perform(get("/api/v1/usuarios/999999")
+                        .with(authentication(authenticationFor("900001", "security.admin@uq.edu.co", "ADMINISTRADOR"))))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.codigo").value("NO_ENCONTRADO"))
+                .andExpect(jsonPath("$.status").value(404));
+    }
+
+    @Test
+    void crearUsuarioDuplicadoDebeRetornarBadRequest() throws Exception {
+        var email = new Email("ana@uq.edu.co");
+        var requestData = new UsuarioRequestMapper.UsuarioData(
+                "Ana Perez",
+                email,
+                "Admin123*",
+                TipoUsuario.ESTUDIANTE
+        );
+
+        when(usuarioRequestMapper.toDomainData(any())).thenReturn(requestData);
+        when(crearUsuarioUseCase.ejecutar(eq("Ana Perez"), eq(email), eq("Admin123*"), eq(TipoUsuario.ESTUDIANTE)))
+                .thenThrow(new IllegalArgumentException("Ya existe un usuario con el email ana@uq.edu.co"));
+
+        mockMvc.perform(post("/api/v1/usuarios")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nombre": "Ana Perez",
+                                  "email": "ana@uq.edu.co",
+                                  "password": "Admin123*",
+                                  "tipo": "ESTUDIANTE"
+                                }
+                                """)
+                        .with(authentication(authenticationFor("900001", "security.admin@uq.edu.co", "ADMINISTRADOR"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("ARGUMENTO_INVALIDO"))
+                .andExpect(jsonPath("$.status").value(400));
+    }
+
     private UsernamePasswordAuthenticationToken authenticationFor(String id, String email, String role) {
         var usuario = new UsuarioEntity();
         usuario.setId(id);

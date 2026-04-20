@@ -9,11 +9,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class UsuarioPersistenceMapper {
 
+    private static final String DEFAULT_PASSWORD = "NO_AUTH";
+
     public UsuarioEntity toEntity(Usuario usuario) {
         UsuarioEntity entity = new UsuarioEntity();
         entity.setId(usuario.getId().valor());
         entity.setNombre(usuario.getNombre());
         entity.setEmail(usuario.getEmail().valor());
+        entity.setPassword(DEFAULT_PASSWORD);
         entity.setTipo(usuario.getTipo());
         entity.setEstado(usuario.getEstado());
         return entity;

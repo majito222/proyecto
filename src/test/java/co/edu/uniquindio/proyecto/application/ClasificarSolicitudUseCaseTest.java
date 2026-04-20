@@ -4,15 +4,23 @@ import co.edu.uniquindio.proyecto.domain.entity.Solicitud;
 import co.edu.uniquindio.proyecto.domain.entity.Usuario;
 import co.edu.uniquindio.proyecto.domain.repository.SolicitudRepository;
 import co.edu.uniquindio.proyecto.domain.repository.UsuarioRepository;
-import co.edu.uniquindio.proyecto.domain.valueobject.*;
+import co.edu.uniquindio.proyecto.domain.valueobject.CodigoSolicitud;
+import co.edu.uniquindio.proyecto.domain.valueobject.DescripcionSolicitud;
+import co.edu.uniquindio.proyecto.domain.valueobject.Email;
+import co.edu.uniquindio.proyecto.domain.valueobject.IdUsuario;
+import co.edu.uniquindio.proyecto.domain.valueobject.TipoCanal;
+import co.edu.uniquindio.proyecto.domain.valueobject.TipoSolicitud;
+import co.edu.uniquindio.proyecto.domain.valueobject.TipoUsuario;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ClasificarSolicitudUseCaseTest {
@@ -23,26 +31,34 @@ class ClasificarSolicitudUseCaseTest {
 
     @Test
     void ejecutar_deberiaClasificarSolicitud() {
-        // GIVEN
-        CodigoSolicitud codigo = mock(CodigoSolicitud.class);
-        IdUsuario funcionarioId = mock(IdUsuario.class);
-        TipoSolicitud tipo = mock(TipoSolicitud.class);
+        CodigoSolicitud codigo = new CodigoSolicitud("SOL-900");
+        IdUsuario funcionarioId = new IdUsuario("700001");
+        TipoSolicitud tipo = TipoSolicitud.HOMOLOGACION;
 
-        Solicitud solicitudMock = mock(Solicitud.class);
-        Usuario funcionarioMock = mock(Usuario.class);
+        Solicitud solicitudMock = Solicitud.crear(
+                codigo,
+                new IdUsuario("123456"),
+                "Ana Perez",
+                TipoCanal.CSU,
+                TipoSolicitud.CONSULTA_ACADEMICA,
+                new DescripcionSolicitud("Descripcion valida para clasificar una solicitud de prueba.")
+        );
+        Usuario funcionarioMock = new Usuario(
+                funcionarioId,
+                "Funcionario",
+                new Email("funcionario@uq.edu.co"),
+                TipoUsuario.FUNCIONARIO
+        );
 
         when(solicitudRepository.buscarPorCodigo(codigo)).thenReturn(solicitudMock);
         when(usuarioRepository.buscarPorId(funcionarioId)).thenReturn(funcionarioMock);
-        when(funcionarioMock.puedeAtenderSolicitudes()).thenReturn(true);
-        when(funcionarioMock.getId()).thenReturn(funcionarioId);
-        when(solicitudRepository.guardar(any())).thenReturn(solicitudMock);
+        when(solicitudRepository.guardar(solicitudMock)).thenReturn(solicitudMock);
 
-        // WHEN
         Solicitud resultado = useCase.ejecutar(codigo, funcionarioId, tipo);
 
-        // THEN
         assertNotNull(resultado);
-        verify(solicitudMock).clasificarSolicitud(eq(tipo), any());
+        assertEquals("CLASIFICADA", resultado.getEstado().name());
+        assertEquals(TipoSolicitud.HOMOLOGACION, resultado.getTipo());
         verify(solicitudRepository).guardar(solicitudMock);
     }
 }

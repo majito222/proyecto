@@ -22,14 +22,16 @@ import co.edu.uniquindio.proyecto.domain.valueobject.TipoSolicitud;
 import co.edu.uniquindio.proyecto.infrastructure.exception.GlobalExceptionHandler;
 import co.edu.uniquindio.proyecto.infrastructure.mapper.SolicitudMapper;
 import co.edu.uniquindio.proyecto.infrastructure.mapper.SolicitudRequestMapper;
+import co.edu.uniquindio.proyecto.infrastructure.security.jwt.JwtAuthenticationFilter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -45,50 +47,54 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(SolicitudController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @Import(GlobalExceptionHandler.class)
 class SolicitudControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean
+    @MockBean
     private IniciarAtencionUseCase iniciarAtencionUseCase;
 
-    @MockitoBean
+    @MockBean
     private MarcarAtendidaUseCase marcarAtendidaUseCase;
 
-    @MockitoBean
+    @MockBean
     private ClasificarSolicitudUseCase clasificarSolicitudUseCase;
 
-    @MockitoBean
+    @MockBean
     private PriorizarSolicitudUseCase priorizarSolicitudUseCase;
 
-    @MockitoBean
+    @MockBean
     private CrearSolicitudUseCase crearSolicitudUseCase;
 
-    @MockitoBean
+    @MockBean
     private AsignarResponsableUseCase asignarResponsableUseCase;
 
-    @MockitoBean
+    @MockBean
     private CerrarSolicitudUseCase cerrarSolicitudUseCase;
 
-    @MockitoBean
+    @MockBean
     private CancelarSolicitudUseCase cancelarSolicitudUseCase;
 
-    @MockitoBean
+    @MockBean
     private ConsultarSolicitudesUseCase consultarSolicitudesUseCase;
 
-    @MockitoBean
+    @MockBean
     private ConsultarSolicitudesAvanzadasUseCase consultarSolicitudesAvanzadasUseCase;
 
-    @MockitoBean
+    @MockBean
     private ConsultarSolicitudPorCodigoUseCase consultarSolicitudPorCodigoUseCase;
 
-    @MockitoBean
+    @MockBean
     private SolicitudMapper solicitudMapper;
 
-    @MockitoBean
+    @MockBean
     private SolicitudRequestMapper solicitudRequestMapper;
+
+    @MockBean
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Test
     void crearSolicitudDebeRetornarCreatedConLocation() throws Exception {

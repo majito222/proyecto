@@ -41,9 +41,8 @@ class CrearSolicitudUseCaseTest {
         DescripcionSolicitud descripcion =
                 new DescripcionSolicitud("Descripcion valida para crear una solicitud de prueba.");
 
-        Solicitud solicitudMock = org.mockito.Mockito.mock(Solicitud.class);
         when(usuarioRepository.buscarPorId(id)).thenReturn(usuario);
-        when(solicitudRepository.guardar(any())).thenReturn(solicitudMock);
+        when(solicitudRepository.guardar(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         Solicitud resultado = useCase.ejecutar(
                 id,

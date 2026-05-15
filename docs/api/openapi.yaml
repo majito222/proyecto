@@ -1,0 +1,885 @@
+openapi: 3.0.3
+info:
+  title: API de Gestion de Solicitudes Academicas
+  version: 1.1.0
+  description: API REST para gestionar usuarios y solicitudes academicas con arquitectura por capas, persistencia JPA y autenticacion JWT.
+servers:
+  - url: http://localhost:8081
+    description: Desarrollo local
+tags:
+  - name: Auth
+    description: Autenticacion y emision de JWT
+  - name: Solicitudes
+    description: Operaciones del agregado Solicitud
+  - name: Usuarios
+    description: Operaciones del agregado Usuario
+  - name: Health
+    description: Verificacion de disponibilidad de la API
+security:
+  - bearerAuth: []
+paths:
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Iniciar sesion
+      description: Valida email y password y devuelve un token JWT Bearer.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/solicitudes:
+    post:
+      tags: [Solicitudes]
+      summary: Crear solicitud
+      description: Registra una nueva solicitud academica para el estudiante autenticado.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrearSolicitudRequest'
+      responses:
+        '201':
+          description: Solicitud creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolicitudDetalleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    get:
+      tags: [Solicitudes]
+      summary: Listar solicitudes
+      description: Retorna solicitudes paginadas y permite filtrar por estado o canal.
+      parameters:
+        - in: query
+          name: estado
+          required: false
+          schema:
+            type: string
+            enum: [REGISTRADA, CLASIFICADA, PRIORIZADA, EN_ATENCION, ATENDIDA, CERRADA, CANCELADA]
+        - in: query
+          name: canal
+          required: false
+          schema:
+            type: string
+            enum: [CSU, CORREO, SAC, TELEFONICO]
+        - $ref: '#/components/parameters/Pagina'
+        - $ref: '#/components/parameters/Tamano'
+        - $ref: '#/components/parameters/OrdenarPorSolicitud'
+        - $ref: '#/components/parameters/DireccionOrdenamiento'
+      responses:
+        '200':
+          description: Solicitudes consultadas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginaSolicitudesResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/v1/solicitudes/{codigo}:
+    get:
+      tags: [Solicitudes]
+      summary: Consultar solicitud por codigo
+      description: Retorna el detalle de una solicitud.
+      parameters:
+        - $ref: '#/components/parameters/CodigoSolicitud'
+      responses:
+        '200':
+          description: Solicitud encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolicitudDetalleResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/v1/solicitudes/{codigo}/historial:
+    get:
+      tags: [Solicitudes]
+      summary: Consultar historial de solicitud
+      description: Retorna el historial cronologico de eventos de una solicitud con paginacion.
+      parameters:
+        - $ref: '#/components/parameters/CodigoSolicitud'
+        - $ref: '#/components/parameters/Pagina'
+        - $ref: '#/components/parameters/Tamano'
+      responses:
+        '200':
+          description: Historial consultado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginaHistorialResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/v1/solicitudes/{codigo}/responsable:
+    put:
+      tags: [Solicitudes]
+      summary: Asignar responsable
+      description: Asigna un funcionario responsable a una solicitud.
+      parameters:
+        - $ref: '#/components/parameters/CodigoSolicitud'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AsignarResponsableRequest'
+      responses:
+        '200':
+          description: Responsable asignado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolicitudDetalleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/solicitudes/{codigo}/clasificacion:
+    post:
+      tags: [Solicitudes]
+      summary: Clasificar solicitud
+      description: Clasifica una solicitud registrada y define su tipo.
+      parameters:
+        - $ref: '#/components/parameters/CodigoSolicitud'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClasificarSolicitudRequest'
+      responses:
+        '200':
+          description: Solicitud clasificada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolicitudDetalleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/solicitudes/{codigo}/prioridad:
+    post:
+      tags: [Solicitudes]
+      summary: Priorizar solicitud
+      description: Asigna prioridad a una solicitud clasificada.
+      parameters:
+        - $ref: '#/components/parameters/CodigoSolicitud'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PriorizarSolicitudRequest'
+      responses:
+        '200':
+          description: Solicitud priorizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolicitudDetalleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/solicitudes/{codigo}/atencion/inicio:
+    post:
+      tags: [Solicitudes]
+      summary: Iniciar atencion
+      description: Cambia la solicitud al estado EN_ATENCION.
+      parameters:
+        - $ref: '#/components/parameters/CodigoSolicitud'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IniciarAtencionRequest'
+      responses:
+        '200':
+          description: Atencion iniciada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolicitudDetalleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/solicitudes/{codigo}/atencion/finalizacion:
+    post:
+      tags: [Solicitudes]
+      summary: Finalizar atencion
+      description: Marca la solicitud como ATENDIDA.
+      parameters:
+        - $ref: '#/components/parameters/CodigoSolicitud'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarcarAtendidaRequest'
+      responses:
+        '200':
+          description: Solicitud atendida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolicitudDetalleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/solicitudes/{codigo}/cierre:
+    post:
+      tags: [Solicitudes]
+      summary: Cerrar solicitud
+      description: Cierra una solicitud atendida con observacion administrativa.
+      parameters:
+        - $ref: '#/components/parameters/CodigoSolicitud'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CerrarSolicitudRequest'
+      responses:
+        '200':
+          description: Solicitud cerrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolicitudDetalleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/solicitudes/{codigo}/cancelacion:
+    post:
+      tags: [Solicitudes]
+      summary: Cancelar solicitud
+      description: Cancela una solicitud y registra el evento en el historial.
+      parameters:
+        - $ref: '#/components/parameters/CodigoSolicitud'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelarSolicitudRequest'
+      responses:
+        '200':
+          description: Solicitud cancelada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolicitudDetalleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/usuarios:
+    post:
+      tags: [Usuarios]
+      summary: Crear usuario
+      description: Registra un nuevo usuario.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrearUsuarioRequest'
+      responses:
+        '201':
+          description: Usuario creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsuarioDetalleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    get:
+      tags: [Usuarios]
+      summary: Listar usuarios
+      description: Retorna la lista paginada de usuarios registrados.
+      parameters:
+        - $ref: '#/components/parameters/Pagina'
+        - $ref: '#/components/parameters/Tamano'
+        - $ref: '#/components/parameters/OrdenarPorUsuario'
+        - $ref: '#/components/parameters/DireccionOrdenamiento'
+      responses:
+        '200':
+          description: Usuarios consultados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginaUsuariosResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/usuarios/{id}:
+    get:
+      tags: [Usuarios]
+      summary: Consultar usuario por id
+      description: Retorna el detalle de un usuario.
+      parameters:
+        - $ref: '#/components/parameters/IdUsuario'
+      responses:
+        '200':
+          description: Usuario encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsuarioDetalleResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/solicitudes/gui11/estado-prioridad/{estado}:
+    get:
+      tags: [Solicitudes]
+      summary: Solicitudes por estado ordenadas por prioridad
+      description: Lista solicitudes de un estado dado, ordenadas por prioridad descendente y con paginacion.
+      parameters:
+        - in: path
+          name: estado
+          required: true
+          schema:
+            type: string
+            enum: [REGISTRADA, CLASIFICADA, PRIORIZADA, EN_ATENCION, ATENDIDA, CERRADA, CANCELADA]
+        - $ref: '#/components/parameters/Pagina'
+        - $ref: '#/components/parameters/Tamano'
+      responses:
+        '200':
+          description: Solicitudes consultadas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginaSolicitudesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/solicitudes/gui11/codigo:
+    get:
+      tags: [Solicitudes]
+      summary: Busqueda por codigo o descripcion
+      description: Busca solicitudes por coincidencia parcial en codigo o descripcion y pagina el resultado.
+      parameters:
+        - in: query
+          name: codigo
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Pagina'
+        - $ref: '#/components/parameters/Tamano'
+      responses:
+        '200':
+          description: Solicitudes consultadas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginaSolicitudesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/solicitudes/gui11/activas:
+    get:
+      tags: [Solicitudes]
+      summary: Solicitudes activas
+      description: Retorna solicitudes activas paginadas.
+      parameters:
+        - $ref: '#/components/parameters/Pagina'
+        - $ref: '#/components/parameters/Tamano'
+      responses:
+        '200':
+          description: Solicitudes consultadas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginaSolicitudesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/solicitudes/gui11/pendientes-alta:
+    get:
+      tags: [Solicitudes]
+      summary: Pendientes sin asignar de alta prioridad
+      description: Retorna solicitudes de prioridad alta sin responsable, con paginacion.
+      parameters:
+        - $ref: '#/components/parameters/Pagina'
+        - $ref: '#/components/parameters/Tamano'
+      responses:
+        '200':
+          description: Solicitudes consultadas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginaSolicitudesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/health:
+    get:
+      tags: [Health]
+      summary: Health check
+      description: Verifica que el adaptador HTTP este disponible.
+      responses:
+        '200':
+          description: Aplicacion disponible
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: UP
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    CodigoSolicitud:
+      name: codigo
+      in: path
+      required: true
+      description: Codigo unico de la solicitud
+      schema:
+        type: string
+    IdUsuario:
+      name: id
+      in: path
+      required: true
+      description: Identificador unico del usuario
+      schema:
+        type: string
+    Pagina:
+      name: pagina
+      in: query
+      required: false
+      description: Numero de pagina a consultar, iniciando en 0
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    Tamano:
+      name: tamano
+      in: query
+      required: false
+      description: Cantidad de elementos por pagina
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+    OrdenarPorSolicitud:
+      name: ordenarPor
+      in: query
+      required: false
+      description: Campo de ordenamiento para solicitudes
+      schema:
+        type: string
+        default: fechaCreacion
+    OrdenarPorUsuario:
+      name: ordenarPor
+      in: query
+      required: false
+      description: Campo de ordenamiento para usuarios
+      schema:
+        type: string
+        default: nombre
+    DireccionOrdenamiento:
+      name: direccion
+      in: query
+      required: false
+      description: Direccion del ordenamiento
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: asc
+  responses:
+    BadRequest:
+      description: Datos invalidos o regla de dominio incumplida
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Unauthorized:
+      description: Credenciales ausentes, expiradas o invalidas
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Forbidden:
+      description: El usuario no tiene permisos para ejecutar la operacion
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Conflict:
+      description: Estado del recurso incompatible con la operacion
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    InternalError:
+      description: Error interno del servidor
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+  schemas:
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 1
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        tipo:
+          type: string
+          example: Bearer
+        expiresIn:
+          type: integer
+          format: int64
+          example: 900000
+    CrearSolicitudRequest:
+      type: object
+      required: [canal, tipo, descripcion]
+      properties:
+        canal:
+          type: string
+          enum: [CSU, CORREO, SAC, TELEFONICO]
+        tipo:
+          type: string
+          enum: [REGISTRO_ASIGNATURA, HOMOLOGACION, CANCELACION, SOLICITUD_CUPO, CONSULTA_ACADEMICA]
+        descripcion:
+          type: string
+          minLength: 20
+          maxLength: 1000
+    AsignarResponsableRequest:
+      type: object
+      required: [funcionarioId]
+      properties:
+        funcionarioId:
+          type: string
+    ClasificarSolicitudRequest:
+      type: object
+      required: [tipo]
+      properties:
+        tipo:
+          type: string
+          enum: [REGISTRO_ASIGNATURA, HOMOLOGACION, CANCELACION, SOLICITUD_CUPO, CONSULTA_ACADEMICA]
+    PriorizarSolicitudRequest:
+      type: object
+      required: [nivel, justificacion]
+      properties:
+        nivel:
+          type: string
+          enum: [BAJA, MEDIA, ALTA, CRITICA]
+        justificacion:
+          type: string
+          minLength: 5
+          maxLength: 500
+    IniciarAtencionRequest:
+      type: object
+      properties: {}
+    MarcarAtendidaRequest:
+      type: object
+      properties: {}
+    CerrarSolicitudRequest:
+      type: object
+      required: [observacion]
+      properties:
+        observacion:
+          type: string
+          minLength: 10
+          maxLength: 500
+    CancelarSolicitudRequest:
+      type: object
+      required: [observacion]
+      properties:
+        observacion:
+          type: string
+          minLength: 10
+          maxLength: 500
+    CrearUsuarioRequest:
+      type: object
+      required: [nombre, email, password, tipo]
+      properties:
+        nombre:
+          type: string
+          minLength: 3
+          maxLength: 100
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          maxLength: 100
+        tipo:
+          type: string
+          enum: [ESTUDIANTE, FUNCIONARIO, ADMINISTRADOR]
+    HistorialResponse:
+      type: object
+      properties:
+        accion:
+          type: string
+        responsable:
+          type: string
+        observacion:
+          type: string
+        fecha:
+          type: string
+          format: date-time
+    SolicitudResumenResponse:
+      type: object
+      properties:
+        codigo:
+          type: string
+        estudianteId:
+          type: string
+        estudianteNombre:
+          type: string
+        tipo:
+          type: string
+        estado:
+          type: string
+        prioridad:
+          type: string
+          nullable: true
+    SolicitudDetalleResponse:
+      type: object
+      properties:
+        codigo:
+          type: string
+        estudianteId:
+          type: string
+        estudianteNombre:
+          type: string
+        canal:
+          type: string
+        tipo:
+          type: string
+        descripcion:
+          type: string
+        estado:
+          type: string
+        prioridad:
+          type: string
+          nullable: true
+        historial:
+          type: array
+          items:
+            $ref: '#/components/schemas/HistorialResponse'
+    PaginaSolicitudesResponse:
+      type: object
+      properties:
+        contenido:
+          type: array
+          items:
+            $ref: '#/components/schemas/SolicitudResumenResponse'
+        pagina:
+          type: integer
+        tamano:
+          type: integer
+        totalElementos:
+          type: integer
+          format: int64
+        totalPaginas:
+          type: integer
+        primera:
+          type: boolean
+        ultima:
+          type: boolean
+        vacia:
+          type: boolean
+    UsuarioResumenResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        nombre:
+          type: string
+        tipo:
+          type: string
+        estado:
+          type: string
+    PaginaUsuariosResponse:
+      type: object
+      properties:
+        contenido:
+          type: array
+          items:
+            $ref: '#/components/schemas/UsuarioResumenResponse'
+        pagina:
+          type: integer
+        tamano:
+          type: integer
+        totalElementos:
+          type: integer
+          format: int64
+        totalPaginas:
+          type: integer
+        primera:
+          type: boolean
+        ultima:
+          type: boolean
+        vacia:
+          type: boolean
+    PaginaHistorialResponse:
+      type: object
+      properties:
+        contenido:
+          type: array
+          items:
+            $ref: '#/components/schemas/HistorialResponse'
+        pagina:
+          type: integer
+        tamano:
+          type: integer
+        totalElementos:
+          type: integer
+          format: int64
+        totalPaginas:
+          type: integer
+        primera:
+          type: boolean
+        ultima:
+          type: boolean
+        vacia:
+          type: boolean
+    UsuarioDetalleResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        nombre:
+          type: string
+        email:
+          type: string
+        tipo:
+          type: string
+        estado:
+          type: string
+    ErrorDetail:
+      type: object
+      properties:
+        campo:
+          type: string
+          nullable: true
+        mensaje:
+          type: string
+    ApiError:
+      type: object
+      properties:
+        codigo:
+          type: string
+        mensaje:
+          type: string
+        status:
+          type: integer
+        error:
+          type: string
+        ruta:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        detalles:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'

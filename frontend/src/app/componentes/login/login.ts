@@ -38,6 +38,7 @@ export class Login {
         next: (response) => {
           localStorage.setItem('token', response.token);
           localStorage.setItem('roles', JSON.stringify(response.roles));
+          this.authService.isAuthenticated.set(true);
           this.result.set('Sesión iniciada correctamente');
           this.router.navigate(['/']);
         },

@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { LoginRequest, TokenResponse } from '../modelos/auth';
 
@@ -6,6 +6,8 @@ import { LoginRequest, TokenResponse } from '../modelos/auth';
 export class AuthService {
   private http = inject(HttpClient);
   private url = 'http://localhost:8081/api/auth';
+
+  isAuthenticated = signal(!!localStorage.getItem('token'));
 
   login(credenciales: LoginRequest) {
     return this.http.post<TokenResponse>(`${this.url}/login`, credenciales);
@@ -23,5 +25,6 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('roles');
+    this.isAuthenticated.set(false);
   }
 }

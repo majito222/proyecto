@@ -1,0 +1,73 @@
+<div class="container py-5">
+
+  <div class="text-center mb-4">
+    <div class="form-icon mx-auto mb-3">
+      <i class="fa-solid fa-file-lines"></i>
+    </div>
+    <h1 class="fw-bold text-white">Nueva Solicitud</h1>
+    <p class="text-muted">Completa el formulario para enviar tu solicitud académica</p>
+  </div>
+
+  <div class="form-card mx-auto">
+    <h5 class="fw-bold text-white mb-1">
+      <i class="fa-solid fa-circle-info text-primary me-2"></i>Datos de la Solicitud
+    </h5>
+    <p class="text-muted small mb-4">Todos los campos son obligatorios. Tu solicitud será revisada en un plazo de 24-48 horas.</p>
+
+    <form [formGroup]="solicitudForm" (ngSubmit)="onSubmit()">
+
+      <div class="mb-4">
+        <label class="form-label text-white fw-semibold">Tipo de Solicitud</label>
+        <select formControlName="tipo" class="form-select campo-oscuro">
+          <option value="" disabled selected>Selecciona el tipo de solicitud</option>
+          @for (tipo of tipos; track tipo) {
+            <option [value]="tipo">{{ tipo }}</option>
+          }
+        </select>
+        @if (solicitudForm.get('tipo')?.invalid && solicitudForm.get('tipo')?.touched) {
+          <div class="text-danger small mt-1">Selecciona un tipo de solicitud.</div>
+        }
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label text-white fw-semibold">Descripción de la solicitud</label>
+        <textarea formControlName="descripcion" class="form-control campo-oscuro"
+          rows="6" placeholder="Describe detalladamente tu solicitud, incluyendo cualquier información relevante que pueda ayudar a procesarla más rápido..."></textarea>
+        @if (solicitudForm.get('descripcion')?.invalid && solicitudForm.get('descripcion')?.touched) {
+          <div class="text-danger small mt-1">Mínimo 10 caracteres. Sé lo más específico posible.</div>
+        }
+        <small class="text-muted">Mínimo 10 caracteres. Sé lo más específico posible.</small>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label text-white fw-semibold">ID del Solicitante</label>
+        <input type="text" formControlName="solicitanteId" class="form-control campo-oscuro"
+          placeholder="Ingresa tu ID de solicitante" />
+        @if (solicitudForm.get('solicitanteId')?.invalid && solicitudForm.get('solicitanteId')?.touched) {
+          <div class="text-danger small mt-1">El ID del solicitante es obligatorio.</div>
+        }
+      </div>
+
+      @if (result()) {
+        <div class="alert" [class.alert-success]="result().includes('creada')"
+          [class.alert-danger]="!result().includes('creada')">
+          {{ result() }}
+        </div>
+      }
+
+      <div class="d-flex justify-content-end gap-3 mt-4">
+        <button type="button" class="btn btn-dark btn-lg px-4"
+          (click)="solicitudForm.reset()">
+          Limpiar formulario
+        </button>
+        <button type="submit" class="btn btn-primary btn-lg px-4"
+          [disabled]="solicitudForm.invalid || isLoading()">
+          <i class="fa-solid fa-paper-plane me-2"></i>
+          @if (isLoading()) { Enviando... } @else { Enviar Solicitud }
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>

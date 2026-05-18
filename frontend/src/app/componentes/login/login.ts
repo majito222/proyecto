@@ -1,0 +1,50 @@
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../servicios/auth';
+import { LoginRequest } from '../../modelos/auth';
+
+@Component({
+  selector: 'app-login',
+  imports: [ReactiveFormsModule, RouterLink],
+  templateUrl: './login.html',
+  styleUrl: './login.css'
+})
+export class Login {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
+
+  loginForm = inject(FormBuilder).group({
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(6)]]
+  });
+
+  isLoading = signal(false);
+  result = signal('');
+
+  formStatus = toSignal(this.loginForm.statusChanges, { initialValue: 'INVALID' as const });
+  canSubmit = computed(() => this.formStatus() === 'VALID' && !this.isLoading());
+
+  onSubmit(): void {
+    if (!this.canSubmit()) return;
+    this.isLoading.set(true);
+
+    const credenciales = this.loginForm.value as LoginRequest;
+    this.authService.login(credenciales)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          localStorage.setItem('token', response.token);
+          localStorage.setItem('roles', JSON.stringify(response.roles));
+          this.result.set('Sesión iniciada correctamente');
+          this.router.navigate(['/']);
+        },
+        error: () => {
+          this.isLoading.set(false);
+          this.result.set('Credenciales inválidas. Verifica tu correo y contraseña.');
+        }
+      });
+  }
+}

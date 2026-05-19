@@ -25,3 +25,37 @@ Watch mode enabled. Watching for file changes...
 NOTE: Raw file sizes do not reflect development server per-request transformations.
 [2m6:16:23 p. m.[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m Re-optimizing dependencies because lockfile has changed
   [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m4200[22m/[39m
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m       [2m | [22m[1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m        [2m | [22m[36m12.02 kB[39m[2m | [22m
+[32mchunk-NPLOFI24.js[39m  [2m | [22m[2m-[22m           [2m | [22m [36m2.36 kB[39m[2m | [22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m       [2m | [22m[1mRaw size[22m
+[32mchunk-SQ4D76VV.js[39m  [2m | [22m[2mlogin[22m       [2m | [22m[36m12.82 kB[39m[2m | [22m
+[32mchunk-5FIY2EEW.js[39m  [2m | [22m[2munauthorized[22m[2m | [22m [36m3.56 kB[39m[2m | [22m
+[32mchunk-SKRKIFWL.js[39m  [2m | [22m[2madmin[22m       [2m | [22m [36m2.91 kB[39m[2m | [22m
+
+Application bundle generation complete. [4.961 seconds] - 2026-05-19T23:23:16.145Z
+
+Page reload sent to client(s).
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m[2m | [22m[1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m [2m | [22m[36m12.62 kB[39m[2m | [22m
+
+Application bundle generation complete. [1.536 seconds] - 2026-05-19T23:24:10.198Z
+
+Component update sent to client(s).
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m[2m | [22m[1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m [2m | [22m[36m12.62 kB[39m[2m | [22m
+[32mchunk-WY2DVYRU.js[39m  [2m | [22m[2m-[22m    [2m | [22m [36m2.31 kB[39m[2m | [22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m[2m | [22m[1mRaw size[22m
+[32mchunk-TNJNOD7V.js[39m  [2m | [22m[2mlogin[22m[2m | [22m[36m12.82 kB[39m[2m | [22m
+
+Application bundle generation complete. [1.031 seconds] - 2026-05-19T23:25:27.936Z
+
+Page reload sent to client(s).

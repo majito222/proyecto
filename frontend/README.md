@@ -139,6 +139,53 @@ Flujo esperado:
 5. `authInterceptor` agrega `Authorization: Bearer <token>` a las peticiones protegidas.
 6. `logout()` limpia token, roles y actualiza `isAuthenticated` a `false`.
 
+## Guards
+
+El frontend usa guards funcionales modernos (`CanActivateFn`) y no clases legacy.
+
+- `authGuard`: protege rutas privadas. Si no existe sesion activa devuelve `router.createUrlTree(['/login'])`.
+- `publicGuard`: bloquea `/login` y `/registro` cuando el usuario ya esta autenticado y redirige a `/lista-solicitudes`.
+- `rolesGuard`: valida autenticacion y roles desde `route.data['expectedRoles']`. Si falta sesion redirige a `/login`; si faltan permisos redirige a `/unauthorized`.
+
+Todos los guards usan `inject()`, `Router`, `createUrlTree()` y `AuthService`.
+
+## Interceptor JWT
+
+El interceptor esta implementado como `HttpInterceptorFn`.
+
+Responsabilidades:
+
+- Lee el token desde `AuthService.getToken()`.
+- No agrega `Authorization` al endpoint `/api/auth/login`.
+- Clona la peticion con `req.clone()`.
+- Agrega `Authorization: Bearer <token>` a peticiones protegidas.
+- Captura respuestas `401`.
+- Ejecuta `logout()` automaticamente y redirige a `/login`.
+
+## Flujo JWT completo
+
+```text
+Login -> AuthService.login() -> localStorage token/roles -> isAuthenticated signal
+-> authInterceptor -> Authorization: Bearer <token> -> API protegida
+-> 401 -> logout automatico -> redirect /login
+```
+
+## Rutas protegidas
+
+- `/login`: publica, protegida con `publicGuard`.
+- `/registro`: publica, protegida con `publicGuard`.
+- `/nueva-solicitud`: privada, protegida con `authGuard`.
+- `/lista-solicitudes`: privada, protegida con `authGuard`.
+- `/admin`: privada por rol, protegida con `rolesGuard` y `expectedRoles: ['ADMINISTRADOR']`.
+- `/unauthorized`: pagina de acceso denegado.
+- `**`: wildcard hacia inicio.
+
+## Resumen de seguridad
+
+La seguridad del frontend evita navegacion accidental a pantallas privadas y automatiza el envio del JWT. La autorizacion real debe seguir estando en el backend Spring Boot, porque cualquier validacion frontend puede ser manipulada desde el navegador.
+
+Los roles se guardan en `localStorage` para persistencia de sesion y tambien en signals para que la UI reaccione sin recargar. Al cerrar sesion o recibir `401`, se limpian token y roles.
+
 ## Signals y formularios
 
 El login debe combinar Reactive Forms con signals:
@@ -168,7 +215,7 @@ El proyecto ya usa Angular standalone, rutas lazy, PrimeNG 21 en styled mode, lo
 
 ## Recomendaciones
 
-- Agregar guards para rutas protegidas.
+- Agregar refresh token si el backend lo soporta.
 - Usar `p-table` cuando la lista crezca y necesite paginacion, filtros u ordenamiento.
 - Mover URLs de API a archivos de environment.
 - Agregar toast global para errores de API y expiracion de sesion.

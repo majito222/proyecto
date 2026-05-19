@@ -5,7 +5,7 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import Aura from '@primeuix/themes/aura';
 import { providePrimeNG } from 'primeng/config';
 import { routes } from './app.routes';
-import { authInterceptor } from './interceptores/auth-interceptor';
+import { authInterceptor } from './interceptores/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [

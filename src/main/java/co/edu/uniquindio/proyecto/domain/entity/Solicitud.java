@@ -147,6 +147,15 @@ public class Solicitud {
         registrarEvento("Prioridad asignada por administrador " + administradorId);
     }
 
+    public void asignarPrioridadAutomatica(PrioridadSolicitud prioridad) {
+        if (estado != EstadoSolicitud.REGISTRADA) {
+            throw new TransicionEstadoInvalidaException("Solo solicitudes registradas pueden recibir prioridad automatica");
+        }
+
+        this.prioridad = Objects.requireNonNull(prioridad);
+        registrarEvento("Prioridad sugerida por IA: " + prioridad.nivel());
+    }
+
     public void asignarResponsable(IdUsuario responsableId) {
 
         if (estado != EstadoSolicitud.CLASIFICADA) {

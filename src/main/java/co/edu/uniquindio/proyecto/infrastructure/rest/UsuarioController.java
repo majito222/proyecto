@@ -22,7 +22,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -53,9 +55,12 @@ public class UsuarioController {
             @ApiResponse(responseCode = "400", description = "Datos invalidos",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<UsuarioDetalleResponse> crearUsuario(
             @Valid @RequestBody CrearUsuarioRequest request) {
+
+        if (request.tipo() != CrearUsuarioRequest.TipoUsuario.ESTUDIANTE && !esAdministradorAutenticado()) {
+            throw new AccessDeniedException("Solo un administrador puede crear usuarios no estudiantes");
+        }
 
         var datos = usuarioRequestMapper.toDomainData(request);
         var usuario = crearUsuarioUseCase.ejecutar(
@@ -73,6 +78,15 @@ public class UsuarioController {
 
         return ResponseEntity.created(location)
                 .body(usuarioMapper.toDetalleResponse(usuario));
+    }
+
+    private boolean esAdministradorAutenticado() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        return authentication != null
+                && authentication.isAuthenticated()
+                && authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMINISTRADOR".equals(authority.getAuthority()));
     }
 
     @GetMapping

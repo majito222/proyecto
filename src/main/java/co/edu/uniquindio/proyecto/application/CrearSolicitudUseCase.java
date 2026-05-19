@@ -19,6 +19,7 @@ public class CrearSolicitudUseCase {
 
     private final SolicitudRepository solicitudRepository;
     private final UsuarioRepository usuarioRepository;
+    private final PriorizarSolicitudIAService priorizarSolicitudIAService;
 
     @Transactional
     public Solicitud ejecutar(IdUsuario estudianteId,
@@ -45,6 +46,8 @@ public class CrearSolicitudUseCase {
                 tipo,
                 descripcion
         );
+
+        solicitud.asignarPrioridadAutomatica(priorizarSolicitudIAService.sugerir(canal, tipo, descripcion));
 
         return solicitudRepository.guardar(solicitud);
     }

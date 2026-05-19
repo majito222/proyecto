@@ -24,7 +24,7 @@
 .badge-dot {
   width: 7px;
   height: 7px;
-  background: #2563eb;
+  background: var(--app-accent);
   border-radius: 50%;
 }
 
@@ -37,7 +37,7 @@
 }
 
 .titulo-azul {
-  color: #2563eb;
+  color: var(--app-primary);
   display: block;
 }
 
@@ -56,8 +56,8 @@
 }
 
 .btn-primary {
-  background: #2563eb;
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--app-primary), var(--app-accent));
+  color: #06111f;
   text-decoration: none;
   padding: 0.8rem 1.8rem;
   border-radius: 8px;
@@ -67,10 +67,11 @@
 }
 
 .btn-primary:hover {
-  background: #1d4ed8;
+  filter: brightness(1.08);
 }
 
 .btn-secondary {
-  background: transparent;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
   color: #ffffff;
 }

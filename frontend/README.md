@@ -108,6 +108,8 @@ export const appConfig: ApplicationConfig = {
 
 PrimeNG 21 usa styled mode: los estilos se generan desde design tokens del preset seleccionado. Aura es un preset oficial que define color, spacing, radios, superficies, estados y variantes visuales. En este modo no se importan temas CSS antiguos como en versiones legacy.
 
+La aplicacion usa una paleta oscura propia sobre Aura: fondo azul-negro, superficies oscuras, acentos cian/verde y estados visuales de PrimeNG para mensajes, botones y tags.
+
 ## Componentes PrimeNG recomendados
 
 Login:
@@ -170,6 +172,31 @@ Login -> AuthService.login() -> localStorage token/roles -> isAuthenticated sign
 -> 401 -> logout automatico -> redirect /login
 ```
 
+## Registro
+
+La ruta `/registro` crea usuarios estudiantes mediante:
+
+```text
+POST http://localhost:8080/api/v1/usuarios
+```
+
+El frontend siempre envia `tipo: 'ESTUDIANTE'`. El backend permite autoregistro solo para estudiantes; crear `FUNCIONARIO` o `ADMINISTRADOR` sigue requiriendo un administrador autenticado.
+
+## Prioridad IA
+
+La prioridad automatica se calcula en dos lugares:
+
+- Frontend: `PrioridadIaService` muestra una sugerencia reactiva antes de enviar la solicitud.
+- Backend: `PriorizarSolicitudIAService` calcula y persiste la prioridad al crear la solicitud.
+
+La IA actual es deterministica y auditable: pondera tipo, canal y palabras clave de urgencia. No depende de servicios externos, por lo que funciona localmente sin claves API.
+
+```text
+Nueva solicitud -> tipo/canal/descripcion -> sugerencia IA en UI
+-> POST /api/v1/solicitudes -> prioridad IA persistida
+-> lista muestra prioridad resultante
+```
+
 ## Rutas protegidas
 
 - `/login`: publica, protegida con `publicGuard`.
@@ -211,12 +238,12 @@ readonly canSubmit = computed(() => this.formStatus() === 'VALID' && !this.isLoa
 
 Nivel actual: intermedio en frontend.
 
-El proyecto ya usa Angular standalone, rutas lazy, PrimeNG 21 en styled mode, login reactivo con signals, interceptor JWT y una lista de solicitudes tipada. El siguiente salto de calidad esta en guards, manejo global de errores, ambientes por entorno y componentes de tabla mas completos.
+El proyecto ya usa Angular standalone, rutas lazy, PrimeNG 21 en styled mode, login y registro reactivos con signals, interceptor JWT, guards, autoregistro y prioridad IA automatica.
 
 ## Recomendaciones
 
 - Agregar refresh token si el backend lo soporta.
-- Usar `p-table` cuando la lista crezca y necesite paginacion, filtros u ordenamiento.
 - Mover URLs de API a archivos de environment.
+- Evolucionar la prioridad IA a un proveedor externo o modelo entrenado cuando exista una politica institucional clara.
 - Agregar toast global para errores de API y expiracion de sesion.
 - Mantener Bootstrap solo para utilidades globales si no compite visualmente con PrimeNG.

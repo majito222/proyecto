@@ -8,6 +8,10 @@ group = 'co.edu.uniquindio'
 version = '0.0.1-SNAPSHOT'
 description = 'Proyecto Programacion Avanzada'
 
+springBoot {
+	mainClass = 'co.edu.uniquindio.proyecto.ProyectoApplication'
+}
+
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(25)

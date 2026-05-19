@@ -1,0 +1,43 @@
+:host {
+  display: block;
+}
+
+.registro-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 64px);
+  padding: 2rem;
+}
+
+:host ::ng-deep .registro-card {
+  width: 100%;
+  max-width: 480px;
+}
+
+.registro-form {
+  margin-top: 1rem;
+}
+
+p-fluid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.login-link {
+  margin: 1rem 0 0;
+  text-align: center;
+  color: var(--app-muted);
+  font-size: 0.9rem;
+}
+
+.login-link a {
+  color: var(--app-primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.login-link a:hover {
+  text-decoration: underline;
+}

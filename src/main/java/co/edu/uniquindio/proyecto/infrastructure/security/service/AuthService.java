@@ -26,7 +26,10 @@ public class AuthService {
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String token = jwtService.generateToken(userDetails);
+        var roles = userDetails.getAuthorities().stream()
+                .map(authority -> authority.getAuthority().replaceFirst("^ROLE_", ""))
+                .toList();
 
-        return new LoginResponse(token, "Bearer", jwtConfig.getExpiration());
+        return new LoginResponse(token, "Bearer", jwtConfig.getExpiration(), roles);
     }
 }

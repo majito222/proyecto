@@ -1,3 +1,7 @@
+:host {
+  display: block;
+}
+
 .login-container {
   min-height: calc(100vh - 64px);
   display: flex;
@@ -6,117 +10,36 @@
   padding: 2rem;
 }
 
-.login-card {
-  background: #111111;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 16px;
-  padding: 2.5rem;
+:host ::ng-deep .login-card {
   width: 100%;
   max-width: 420px;
+}
+
+.login-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.login-form {
+  margin-top: 1rem;
+}
+
+p-fluid {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-}
-
-.login-header {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.login-icon {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.login-header h1 {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.login-header p {
-  color: #a1a1aa;
-  font-size: 0.9rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.form-group label {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #d4d4d8;
-}
-
-.form-group input {
-  background: #1a1a1a;
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
-  color: #ffffff;
-  font-size: 0.95rem;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.form-group input:focus {
-  border-color: #2563eb;
-}
-
-.form-group input::placeholder {
-  color: #52525b;
-}
-
-.error {
-  color: #f87171;
-  font-size: 0.8rem;
-}
-
-.result-msg {
-  background: rgba(37,99,235,0.1);
-  border: 1px solid rgba(37,99,235,0.3);
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
-  color: #93c5fd;
-  font-size: 0.9rem;
-  text-align: center;
-}
-
-button {
-  background: #2563eb;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  padding: 0.85rem;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-  width: 100%;
-}
-
-button:hover:not(:disabled) {
-  background: #1d4ed8;
-}
-
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  gap: 1rem;
 }
 
 .register-link {
   text-align: center;
-  color: #a1a1aa;
+  color: var(--p-surface-500);
   font-size: 0.85rem;
+  margin: 1rem 0 0;
 }
 
 .register-link a {
-  color: #2563eb;
+  color: var(--p-primary-color);
   text-decoration: none;
   font-weight: 500;
 }

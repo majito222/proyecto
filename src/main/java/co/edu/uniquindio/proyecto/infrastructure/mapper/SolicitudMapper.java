@@ -10,6 +10,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
@@ -22,6 +23,7 @@ public interface SolicitudMapper {
     @Mapping(target = "descripcion", source = "descripcion.valor")
     @Mapping(target = "estado", source = "estado")
     @Mapping(target = "prioridad", source = "prioridad", qualifiedByName = "mapPrioridadDetalle")
+    @Mapping(target = "fechaCreacion", expression = "java(fechaCreacion(solicitud))")
     @Mapping(target = "historial", expression = "java(toHistorialResponseList(solicitud.obtenerHistorial()))")
     SolicitudDetalleResponse toDetalleResponse(Solicitud solicitud);
 
@@ -30,6 +32,8 @@ public interface SolicitudMapper {
     @Mapping(target = "tipo", source = "tipo")
     @Mapping(target = "estado", source = "estado")
     @Mapping(target = "prioridad", source = "prioridad", qualifiedByName = "mapPrioridadResumen")
+    @Mapping(target = "descripcion", source = "descripcion.valor")
+    @Mapping(target = "fechaCreacion", expression = "java(fechaCreacion(solicitud))")
     SolicitudResumenResponse toResumenResponse(Solicitud solicitud);
 
     List<SolicitudResumenResponse> toResumenResponseList(List<Solicitud> solicitudes);
@@ -49,5 +53,10 @@ public interface SolicitudMapper {
     @Named("mapPrioridadResumen")
     default String mapPrioridadResumen(PrioridadSolicitud prioridad) {
         return prioridad == null ? null : prioridad.nivel().name();
+    }
+
+    default LocalDateTime fechaCreacion(Solicitud solicitud) {
+        List<Historial> historial = solicitud.obtenerHistorial();
+        return historial.isEmpty() ? null : historial.getFirst().fecha();
     }
 }

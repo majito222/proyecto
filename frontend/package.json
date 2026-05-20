@@ -9,6 +9,7 @@
   },
   "private": true,
   "dependencies": {
+    "@angular/animations": "^21.2.13",
     "@angular/cdk": "^21.2.11",
     "@angular/common": "^21.2.13",
     "@angular/compiler": "^21.2.13",
@@ -28,6 +29,6 @@
     "@angular/cli": "^21.2.11",
     "@angular/compiler-cli": "^21.2.13",
     "typescript": "~5.9.3",
-    "vitest": "^3.2.4"
+    "vitest": "^4.0.8"
   }
 }

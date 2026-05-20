@@ -19,7 +19,7 @@ public class CrearSolicitudUseCase {
 
     private final SolicitudRepository solicitudRepository;
     private final UsuarioRepository usuarioRepository;
-    private final PriorizarSolicitudIAService priorizarSolicitudIAService;
+    private final PriorizarSolicitudIAService priorizarSolicitudIAService = new PriorizarSolicitudIAService();
 
     @Transactional
     public Solicitud ejecutar(IdUsuario estudianteId,

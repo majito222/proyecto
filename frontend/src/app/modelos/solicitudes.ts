@@ -15,6 +15,8 @@ export interface SolicitudResumen {
   estado: EstadoSolicitud;
   tipo: TipoSolicitud;
   prioridad: Prioridad | null;
+  descripcion?: string | null;
+  fechaCreacion?: string | null;
 }
 
 export interface SolicitudDetalle extends SolicitudResumen {

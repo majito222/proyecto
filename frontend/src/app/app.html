@@ -12,6 +12,7 @@
       <a routerLink="/admin" routerLinkActive="is-active">Admin</a>
     }
     @if (auth.isAuthenticated()) {
+      <span class="session-role">Ingreso: {{ auth.sessionLabel() }}</span>
       <p-button label="Salir" severity="secondary" size="small" (onClick)="auth.logout()" />
     } @else {
       <a routerLink="/login" routerLinkActive="is-active">Login</a>

@@ -1,5 +1,6 @@
 package co.edu.uniquindio.proyecto.application;
 
+import co.edu.uniquindio.proyecto.application.ConsultarSolicitudesPorEstadoUseCase;
 import co.edu.uniquindio.proyecto.domain.entity.Solicitud;
 import co.edu.uniquindio.proyecto.domain.repository.SolicitudRepository;
 import co.edu.uniquindio.proyecto.domain.valueobject.EstadoSolicitud;
@@ -11,11 +12,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ConsultarSolicitudesPorEstadoUseCaseTest {
+class ConsultarSolicitudesPorEstadoUseCaseTest{
 
     @Mock private SolicitudRepository solicitudRepository;
     @InjectMocks private ConsultarSolicitudesPorEstadoUseCase useCase;

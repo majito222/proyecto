@@ -1,0 +1,28 @@
+
+> frontend@0.0.0 start
+> ng serve --host 127.0.0.1 --port 4200
+
+[33m>[39m Building...
+[32m√[39m Building...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m            [2m | [22m [1mRaw size[22m
+[32mstyles.css[39m         [2m | [22m[2mstyles[22m           [2m | [22m [36m87.39 kB[39m[2m | [22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m             [2m | [22m [36m12.68 kB[39m[2m | [22m
+[32mchunk-WY2DVYRU.js[39m  [2m | [22m[2m-[22m                [2m | [22m  [36m2.31 kB[39m[2m | [22m
+
+[1m [22m                  [2m | [22m[1mInitial total[22m    [2m | [22m[1m102.38 kB[22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m            [2m | [22m [1mRaw size[22m
+[32mchunk-AAAJCZOA.js[39m  [2m | [22m[2mregistro[22m         [2m | [22m [36m17.14 kB[39m[2m | [22m
+[32mchunk-TLW54UCN.js[39m  [2m | [22m[2mnueva-solicitud[22m  [2m | [22m [36m13.79 kB[39m[2m | [22m
+[32mchunk-MYRTCXIL.js[39m  [2m | [22m[2mlogin[22m            [2m | [22m [36m12.80 kB[39m[2m | [22m
+[32mchunk-HNUDV6SE.js[39m  [2m | [22m[2mlista-solicitudes[22m[2m | [22m [36m11.09 kB[39m[2m | [22m
+[32mchunk-EHC4KQZB.js[39m  [2m | [22m[2minicio[22m           [2m | [22m  [36m8.22 kB[39m[2m | [22m
+[32mchunk-5FIY2EEW.js[39m  [2m | [22m[2munauthorized[22m     [2m | [22m  [36m3.56 kB[39m[2m | [22m
+[32mchunk-SKRKIFWL.js[39m  [2m | [22m[2madmin[22m            [2m | [22m  [36m2.91 kB[39m[2m | [22m
+[32mchunk-BHGVTALS.js[39m  [2m | [22m[2m-[22m                [2m | [22m  [36m1.02 kB[39m[2m | [22m
+
+Application bundle generation complete. [4.471 seconds] - 2026-05-19T23:47:39.136Z
+
+Watch mode enabled. Watching for file changes...
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m4200[22m/[39m

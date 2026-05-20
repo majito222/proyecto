@@ -32,6 +32,7 @@ import co.edu.uniquindio.proyecto.domain.valueobject.PrioridadSolicitud;
 import co.edu.uniquindio.proyecto.domain.valueobject.TipoSolicitud;
 import co.edu.uniquindio.proyecto.infrastructure.mapper.SolicitudMapper;
 import co.edu.uniquindio.proyecto.infrastructure.mapper.SolicitudRequestMapper;
+import co.edu.uniquindio.proyecto.infrastructure.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -45,7 +46,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -62,7 +70,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/solicitudes")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 @Tag(name = "Solicitudes", description = "Operaciones REST del agregado Solicitud")
 public class SolicitudController {
 
@@ -90,12 +97,14 @@ public class SolicitudController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             )
     })
+    @PreAuthorize("hasRole('ESTUDIANTE')")
     public ResponseEntity<SolicitudDetalleResponse> crearSolicitud(
-            @Valid @RequestBody CrearSolicitudRequest request) {
+            @Valid @RequestBody CrearSolicitudRequest request,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
 
         var datos = solicitudRequestMapper.toDomainData(request);
         var solicitud = crearSolicitudUseCase.ejecutar(
-                datos.estudianteId(),
+                authenticatedUserId(currentUser),
                 datos.canal(),
                 datos.tipo(),
                 datos.descripcion()
@@ -113,6 +122,7 @@ public class SolicitudController {
 
     @PutMapping("/{codigo}/responsable")
     @Operation(summary = "Asignar responsable")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<SolicitudDetalleResponse> asignarResponsable(
             @PathVariable String codigo,
             @Valid @RequestBody AsignarResponsableRequest request) {
@@ -127,13 +137,15 @@ public class SolicitudController {
 
     @PostMapping("/{codigo}/clasificacion")
     @Operation(summary = "Clasificar solicitud")
+    @PreAuthorize("hasRole('FUNCIONARIO')")
     public ResponseEntity<SolicitudDetalleResponse> clasificarSolicitud(
             @PathVariable String codigo,
-            @Valid @RequestBody ClasificarSolicitudRequest request) {
+            @Valid @RequestBody ClasificarSolicitudRequest request,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
 
         var solicitud = clasificarSolicitudUseCase.ejecutar(
                 new CodigoSolicitud(codigo),
-                new IdUsuario(request.funcionarioId()),
+                authenticatedUserId(currentUser),
                 TipoSolicitud.valueOf(request.tipo().name())
         );
 
@@ -142,13 +154,15 @@ public class SolicitudController {
 
     @PostMapping("/{codigo}/prioridad")
     @Operation(summary = "Priorizar solicitud")
+    @PreAuthorize("hasRole('FUNCIONARIO')")
     public ResponseEntity<SolicitudDetalleResponse> priorizarSolicitud(
             @PathVariable String codigo,
-            @Valid @RequestBody PriorizarSolicitudRequest request) {
+            @Valid @RequestBody PriorizarSolicitudRequest request,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
 
         var solicitud = priorizarSolicitudUseCase.ejecutar(
                 new CodigoSolicitud(codigo),
-                new IdUsuario(request.funcionarioId()),
+                authenticatedUserId(currentUser),
                 new PrioridadSolicitud(
                         PrioridadSolicitud.Nivel.valueOf(request.nivel().name()),
                         request.justificacion()
@@ -160,13 +174,15 @@ public class SolicitudController {
 
     @PostMapping("/{codigo}/atencion/inicio")
     @Operation(summary = "Iniciar atencion")
+    @PreAuthorize("hasRole('FUNCIONARIO')")
     public ResponseEntity<SolicitudDetalleResponse> iniciarAtencion(
             @PathVariable String codigo,
-            @Valid @RequestBody IniciarAtencionRequest request) {
+            @Valid @RequestBody IniciarAtencionRequest request,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
 
         var solicitud = iniciarAtencionUseCase.ejecutar(
                 new CodigoSolicitud(codigo),
-                new IdUsuario(request.funcionarioId())
+                authenticatedUserId(currentUser)
         );
 
         return ResponseEntity.ok(solicitudMapper.toDetalleResponse(solicitud));
@@ -174,13 +190,15 @@ public class SolicitudController {
 
     @PostMapping("/{codigo}/atencion/finalizacion")
     @Operation(summary = "Finalizar atencion")
+    @PreAuthorize("hasRole('FUNCIONARIO')")
     public ResponseEntity<SolicitudDetalleResponse> marcarAtendida(
             @PathVariable String codigo,
-            @Valid @RequestBody MarcarAtendidaRequest request) {
+            @Valid @RequestBody MarcarAtendidaRequest request,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
 
         var solicitud = marcarAtendidaUseCase.ejecutar(
                 new CodigoSolicitud(codigo),
-                new IdUsuario(request.funcionarioId())
+                authenticatedUserId(currentUser)
         );
 
         return ResponseEntity.ok(solicitudMapper.toDetalleResponse(solicitud));
@@ -188,13 +206,15 @@ public class SolicitudController {
 
     @PostMapping("/{codigo}/cierre")
     @Operation(summary = "Cerrar solicitud")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<SolicitudDetalleResponse> cerrarSolicitud(
             @PathVariable String codigo,
-            @Valid @RequestBody CerrarSolicitudRequest request) {
+            @Valid @RequestBody CerrarSolicitudRequest request,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
 
         var solicitud = cerrarSolicitudUseCase.ejecutar(
                 new CodigoSolicitud(codigo),
-                new IdUsuario(request.administradorId()),
+                authenticatedUserId(currentUser),
                 request.observacion()
         );
 
@@ -203,13 +223,15 @@ public class SolicitudController {
 
     @PostMapping("/{codigo}/cancelacion")
     @Operation(summary = "Cancelar solicitud")
+    @PreAuthorize("hasAnyRole('FUNCIONARIO', 'ADMINISTRADOR')")
     public ResponseEntity<SolicitudDetalleResponse> cancelarSolicitud(
             @PathVariable String codigo,
-            @Valid @RequestBody CancelarSolicitudRequest request) {
+            @Valid @RequestBody CancelarSolicitudRequest request,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
 
         var solicitud = cancelarSolicitudUseCase.ejecutar(
                 new CodigoSolicitud(codigo),
-                new IdUsuario(request.responsableId()),
+                authenticatedUserId(currentUser),
                 request.observacion()
         );
 
@@ -312,5 +334,31 @@ public class SolicitudController {
                 .map(solicitudMapper::toResumenResponse);
 
         return ResponseEntity.ok(PaginaResponse.of(solicitudes));
+    }
+
+    private IdUsuario authenticatedUserId(CustomUserDetails currentUser) {
+        if (currentUser != null) {
+            return new IdUsuario(currentUser.usuario().getId());
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails principal) {
+            return new IdUsuario(principal.usuario().getId());
+        }
+
+        ServletRequestAttributes requestAttributes =
+                (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (requestAttributes != null && requestAttributes.getRequest().getSession(false) != null) {
+            Object context = requestAttributes.getRequest()
+                    .getSession(false)
+                    .getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
+            if (context instanceof SecurityContext securityContext
+                    && securityContext.getAuthentication() != null
+                    && securityContext.getAuthentication().getPrincipal() instanceof CustomUserDetails principal) {
+                return new IdUsuario(principal.usuario().getId());
+            }
+        }
+
+        throw new IllegalStateException("No hay un usuario autenticado disponible");
     }
 }

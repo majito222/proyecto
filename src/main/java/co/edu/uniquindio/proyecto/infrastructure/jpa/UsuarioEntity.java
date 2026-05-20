@@ -2,13 +2,7 @@ package co.edu.uniquindio.proyecto.infrastructure.jpa;
 
 import co.edu.uniquindio.proyecto.domain.valueobject.EstadoUsuario;
 import co.edu.uniquindio.proyecto.domain.valueobject.TipoUsuario;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -32,6 +26,9 @@ public class UsuarioEntity {
 
     @Column(name = "email", nullable = false, unique = true, length = 150)
     private String email;
+
+    @Column(name = "password", nullable = false, length = 500)
+    private String password;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo", nullable = false, length = 20)

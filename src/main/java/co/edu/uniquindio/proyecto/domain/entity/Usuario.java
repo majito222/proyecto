@@ -14,6 +14,7 @@ public class Usuario {
     private final IdUsuario id;
     private String nombre;
     private Email email;
+    private String passwordHash;
     private final TipoUsuario tipo;
     private EstadoUsuario estado;
 
@@ -29,10 +30,19 @@ public class Usuario {
                    String nombre,
                    Email email,
                    TipoUsuario tipo) {
+        this(id, nombre, email, null, tipo);
+    }
+
+    public Usuario(IdUsuario id,
+                   String nombre,
+                   Email email,
+                   String passwordHash,
+                   TipoUsuario tipo) {
 
         this.id = Objects.requireNonNull(id);
         this.nombre = Objects.requireNonNull(nombre);
         this.email = Objects.requireNonNull(email);
+        this.passwordHash = passwordHash;
         this.tipo = Objects.requireNonNull(tipo);
         this.estado = EstadoUsuario.ACTIVO;
     }
@@ -103,5 +113,9 @@ public class Usuario {
      */
     public void cambiarNombre(String nuevoNombre) {
         this.nombre = Objects.requireNonNull(nuevoNombre);
+    }
+
+    public void cambiarPasswordHash(String nuevoPasswordHash) {
+        this.passwordHash = Objects.requireNonNull(nuevoPasswordHash);
     }
 }

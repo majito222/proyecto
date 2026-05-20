@@ -2,6 +2,7 @@ package co.edu.uniquindio.proyecto.application;
 
 import co.edu.uniquindio.proyecto.domain.entity.Solicitud;
 import co.edu.uniquindio.proyecto.domain.entity.Usuario;
+import co.edu.uniquindio.proyecto.domain.exception.RolNoAutorizadoException;
 import co.edu.uniquindio.proyecto.domain.repository.SolicitudRepository;
 import co.edu.uniquindio.proyecto.domain.repository.UsuarioRepository;
 import co.edu.uniquindio.proyecto.domain.valueobject.*;
@@ -18,6 +19,7 @@ public class CrearSolicitudUseCase {
 
     private final SolicitudRepository solicitudRepository;
     private final UsuarioRepository usuarioRepository;
+    private final PriorizarSolicitudIAService priorizarSolicitudIAService;
 
     @Transactional
     public Solicitud ejecutar(IdUsuario estudianteId,
@@ -27,6 +29,10 @@ public class CrearSolicitudUseCase {
                               DescripcionSolicitud descripcion) {
 
         Usuario estudiante = usuarioRepository.buscarPorId(estudianteId);
+
+        if (!estudiante.puedeRegistrarSolicitudes()) {
+            throw new RolNoAutorizadoException("Solo un estudiante activo puede registrar solicitudes");
+        }
 
         if (solicitudRepository.existePorCodigo(codigo)) {
             throw new IllegalArgumentException("Ya existe una solicitud con el codigo " + codigo.valor());
@@ -40,6 +46,8 @@ public class CrearSolicitudUseCase {
                 tipo,
                 descripcion
         );
+
+        solicitud.asignarPrioridadAutomatica(priorizarSolicitudIAService.sugerir(canal, tipo, descripcion));
 
         return solicitudRepository.guardar(solicitud);
     }

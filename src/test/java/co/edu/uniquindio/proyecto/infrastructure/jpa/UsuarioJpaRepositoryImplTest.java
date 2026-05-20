@@ -23,6 +23,7 @@ class UsuarioJpaRepositoryImplTest {
                 new IdUsuario("888888"),
                 "Ana Persistida",
                 new Email("ana.persistida@uq.edu.co"),
+                "$2a$10$abcdefghijklmnopqrstuv12345678901234567890123456789012",
                 TipoUsuario.ESTUDIANTE
         );
 
@@ -41,6 +42,7 @@ class UsuarioJpaRepositoryImplTest {
                 new IdUsuario("777777"),
                 "Funcionario Persistido",
                 new Email("func.persistido@uq.edu.co"),
+                "$2a$10$abcdefghijklmnopqrstuv12345678901234567890123456789012",
                 TipoUsuario.FUNCIONARIO
         );
 

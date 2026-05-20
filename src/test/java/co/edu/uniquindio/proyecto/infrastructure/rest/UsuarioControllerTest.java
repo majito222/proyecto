@@ -10,16 +10,20 @@ import co.edu.uniquindio.proyecto.domain.valueobject.Email;
 import co.edu.uniquindio.proyecto.domain.valueobject.IdUsuario;
 import co.edu.uniquindio.proyecto.domain.valueobject.TipoUsuario;
 import co.edu.uniquindio.proyecto.infrastructure.exception.GlobalExceptionHandler;
+import co.edu.uniquindio.proyecto.infrastructure.jpa.UsuarioEntity;
 import co.edu.uniquindio.proyecto.infrastructure.mapper.UsuarioMapper;
 import co.edu.uniquindio.proyecto.infrastructure.mapper.UsuarioRequestMapper;
+import co.edu.uniquindio.proyecto.infrastructure.security.CustomUserDetails;
+import co.edu.uniquindio.proyecto.infrastructure.security.jwt.JwtAuthenticationFilter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -29,31 +33,38 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @WebMvcTest(UsuarioController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @Import(GlobalExceptionHandler.class)
 class UsuarioControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean
+    @MockBean
     private CrearUsuarioUseCase crearUsuarioUseCase;
 
-    @MockitoBean
+    @MockBean
     private ConsultarUsuarioPorIdUseCase consultarUsuarioPorIdUseCase;
 
-    @MockitoBean
+    @MockBean
     private ListarUsuariosUseCase listarUsuariosUseCase;
 
-    @MockitoBean
+    @MockBean
     private UsuarioMapper usuarioMapper;
 
-    @MockitoBean
+    @MockBean
     private UsuarioRequestMapper usuarioRequestMapper;
+
+    @MockBean
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Test
     void crearUsuarioDebeRetornarCreatedConLocation() throws Exception {
@@ -63,6 +74,7 @@ class UsuarioControllerTest {
         var requestData = new UsuarioRequestMapper.UsuarioData(
                 "Ana Perez",
                 email,
+                "Admin123*",
                 TipoUsuario.ESTUDIANTE
         );
         var response = new UsuarioDetalleResponse(
@@ -74,7 +86,7 @@ class UsuarioControllerTest {
         );
 
         when(usuarioRequestMapper.toDomainData(any())).thenReturn(requestData);
-        when(crearUsuarioUseCase.ejecutar(eq("Ana Perez"), eq(email), eq(TipoUsuario.ESTUDIANTE)))
+        when(crearUsuarioUseCase.ejecutar(eq("Ana Perez"), eq(email), eq("Admin123*"), eq(TipoUsuario.ESTUDIANTE)))
                 .thenReturn(usuario);
         when(usuarioMapper.toDetalleResponse(usuario)).thenReturn(response);
 
@@ -84,9 +96,11 @@ class UsuarioControllerTest {
                                 {
                                   "nombre": "Ana Perez",
                                   "email": "ana@uq.edu.co",
+                                  "password": "Admin123*",
                                   "tipo": "ESTUDIANTE"
                                 }
-                                """))
+                                """)
+                        .with(authentication(authenticationFor("900001", "security.admin@uq.edu.co", "ADMINISTRADOR"))))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", "http://localhost/api/v1/usuarios/123456"));
     }
@@ -98,9 +112,11 @@ class UsuarioControllerTest {
                         .content("""
                                 {
                                   "nombre": "",
-                                  "email": "no-es-email"
+                                  "email": "no-es-email",
+                                  "password": "123"
                                 }
-                                """))
+                                """)
+                        .with(authentication(authenticationFor("900001", "security.admin@uq.edu.co", "ADMINISTRADOR"))))
                 .andExpect(status().isBadRequest());
     }
 
@@ -118,10 +134,68 @@ class UsuarioControllerTest {
                 .thenReturn(new PageImpl<>(List.of(usuario), PageRequest.of(0, 10), 1));
         when(usuarioMapper.toResumenResponse(usuario)).thenReturn(response);
 
-        mockMvc.perform(get("/api/v1/usuarios"))
+        mockMvc.perform(get("/api/v1/usuarios")
+                        .with(authentication(authenticationFor("900001", "security.admin@uq.edu.co", "ADMINISTRADOR"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.contenido[0].id").value("123456"))
                 .andExpect(jsonPath("$.totalElementos").value(1))
                 .andExpect(jsonPath("$.primera").value(true));
+    }
+
+    @Test
+    void obtenerUsuarioNoEncontradoDebeRetornarNotFound() throws Exception {
+        when(consultarUsuarioPorIdUseCase.ejecutar(eq(new IdUsuario("999999"))))
+                .thenThrow(new java.util.NoSuchElementException("Usuario no encontrado: 999999"));
+
+        mockMvc.perform(get("/api/v1/usuarios/999999")
+                        .with(authentication(authenticationFor("900001", "security.admin@uq.edu.co", "ADMINISTRADOR"))))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.codigo").value("NO_ENCONTRADO"))
+                .andExpect(jsonPath("$.status").value(404));
+    }
+
+    @Test
+    void crearUsuarioDuplicadoDebeRetornarBadRequest() throws Exception {
+        var email = new Email("ana@uq.edu.co");
+        var requestData = new UsuarioRequestMapper.UsuarioData(
+                "Ana Perez",
+                email,
+                "Admin123*",
+                TipoUsuario.ESTUDIANTE
+        );
+
+        when(usuarioRequestMapper.toDomainData(any())).thenReturn(requestData);
+        when(crearUsuarioUseCase.ejecutar(eq("Ana Perez"), eq(email), eq("Admin123*"), eq(TipoUsuario.ESTUDIANTE)))
+                .thenThrow(new IllegalArgumentException("Ya existe un usuario con el email ana@uq.edu.co"));
+
+        mockMvc.perform(post("/api/v1/usuarios")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nombre": "Ana Perez",
+                                  "email": "ana@uq.edu.co",
+                                  "password": "Admin123*",
+                                  "tipo": "ESTUDIANTE"
+                                }
+                                """)
+                        .with(authentication(authenticationFor("900001", "security.admin@uq.edu.co", "ADMINISTRADOR"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("ARGUMENTO_INVALIDO"))
+                .andExpect(jsonPath("$.status").value(400));
+    }
+
+    private UsernamePasswordAuthenticationToken authenticationFor(String id, String email, String role) {
+        var usuario = new UsuarioEntity();
+        usuario.setId(id);
+        usuario.setEmail(email);
+        usuario.setPassword("$2a$10$abcdefghijklmnopqrstuv");
+        usuario.setTipo(TipoUsuario.valueOf(role));
+        usuario.setEstado(co.edu.uniquindio.proyecto.domain.valueobject.EstadoUsuario.ACTIVO);
+        var principal = new CustomUserDetails(usuario);
+        return new UsernamePasswordAuthenticationToken(
+                principal,
+                null,
+                java.util.List.of(new SimpleGrantedAuthority("ROLE_" + role))
+        );
     }
 }

@@ -14,6 +14,7 @@ import co.edu.uniquindio.proyecto.application.IniciarAtencionUseCase;
 import co.edu.uniquindio.proyecto.application.MarcarAtendidaUseCase;
 import co.edu.uniquindio.proyecto.application.PriorizarSolicitudUseCase;
 import co.edu.uniquindio.proyecto.domain.entity.Solicitud;
+import co.edu.uniquindio.proyecto.domain.exception.TransicionEstadoInvalidaException;
 import co.edu.uniquindio.proyecto.domain.valueobject.CodigoSolicitud;
 import co.edu.uniquindio.proyecto.domain.valueobject.DescripcionSolicitud;
 import co.edu.uniquindio.proyecto.domain.valueobject.IdUsuario;
@@ -22,14 +23,18 @@ import co.edu.uniquindio.proyecto.domain.valueobject.TipoSolicitud;
 import co.edu.uniquindio.proyecto.infrastructure.exception.GlobalExceptionHandler;
 import co.edu.uniquindio.proyecto.infrastructure.mapper.SolicitudMapper;
 import co.edu.uniquindio.proyecto.infrastructure.mapper.SolicitudRequestMapper;
+import co.edu.uniquindio.proyecto.infrastructure.security.CustomUserDetails;
+import co.edu.uniquindio.proyecto.infrastructure.security.jwt.JwtAuthenticationFilter;
+import co.edu.uniquindio.proyecto.infrastructure.jpa.UsuarioEntity;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -40,55 +45,62 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @WebMvcTest(SolicitudController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @Import(GlobalExceptionHandler.class)
 class SolicitudControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean
+    @MockBean
     private IniciarAtencionUseCase iniciarAtencionUseCase;
 
-    @MockitoBean
+    @MockBean
     private MarcarAtendidaUseCase marcarAtendidaUseCase;
 
-    @MockitoBean
+    @MockBean
     private ClasificarSolicitudUseCase clasificarSolicitudUseCase;
 
-    @MockitoBean
+    @MockBean
     private PriorizarSolicitudUseCase priorizarSolicitudUseCase;
 
-    @MockitoBean
+    @MockBean
     private CrearSolicitudUseCase crearSolicitudUseCase;
 
-    @MockitoBean
+    @MockBean
     private AsignarResponsableUseCase asignarResponsableUseCase;
 
-    @MockitoBean
+    @MockBean
     private CerrarSolicitudUseCase cerrarSolicitudUseCase;
 
-    @MockitoBean
+    @MockBean
     private CancelarSolicitudUseCase cancelarSolicitudUseCase;
 
-    @MockitoBean
+    @MockBean
     private ConsultarSolicitudesUseCase consultarSolicitudesUseCase;
 
-    @MockitoBean
+    @MockBean
     private ConsultarSolicitudesAvanzadasUseCase consultarSolicitudesAvanzadasUseCase;
 
-    @MockitoBean
+    @MockBean
     private ConsultarSolicitudPorCodigoUseCase consultarSolicitudPorCodigoUseCase;
 
-    @MockitoBean
+    @MockBean
     private SolicitudMapper solicitudMapper;
 
-    @MockitoBean
+    @MockBean
     private SolicitudRequestMapper solicitudRequestMapper;
+
+    @MockBean
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Test
     void crearSolicitudDebeRetornarCreatedConLocation() throws Exception {
@@ -106,7 +118,6 @@ class SolicitudControllerTest {
                 descripcion
         );
         var requestData = new SolicitudRequestMapper.SolicitudData(
-                estudianteId,
                 TipoCanal.CSU,
                 TipoSolicitud.CONSULTA_ACADEMICA,
                 descripcion
@@ -136,12 +147,12 @@ class SolicitudControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "estudianteId": "123456",
                                   "canal": "CSU",
                                   "tipo": "CONSULTA_ACADEMICA",
                                   "descripcion": "Necesito apoyo con una solicitud academica del semestre actual."
                                 }
-                                """))
+                                """)
+                        .with(authentication(authenticationFor("123456", "ana@uq.edu.co", "ESTUDIANTE"))))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", "http://localhost/api/v1/solicitudes/SOL-001"));
     }
@@ -152,10 +163,10 @@ class SolicitudControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "estudianteId": "",
                                   "descripcion": "corta"
                                 }
-                                """))
+                                """)
+                        .with(authentication(authenticationFor("123456", "ana@uq.edu.co", "ESTUDIANTE"))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.codigo").value("VALIDATION_ERROR"))
                 .andExpect(jsonPath("$.status").value(400))
@@ -227,5 +238,76 @@ class SolicitudControllerTest {
                 .andExpect(jsonPath("$.contenido[0].codigo").value("SOL-001"))
                 .andExpect(jsonPath("$.totalElementos").value(1))
                 .andExpect(jsonPath("$.primera").value(true));
+    }
+
+    @Test
+    void obtenerSolicitudNoEncontradaDebeRetornarNotFound() throws Exception {
+        when(consultarSolicitudPorCodigoUseCase.ejecutar(eq(new CodigoSolicitud("SOL-404"))))
+                .thenThrow(new java.util.NoSuchElementException("Solicitud no encontrada: SOL-404"));
+
+        mockMvc.perform(get("/api/v1/solicitudes/SOL-404"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.codigo").value("NO_ENCONTRADO"))
+                .andExpect(jsonPath("$.status").value(404));
+    }
+
+    @Test
+    void cerrarSolicitudConTransicionInvalidaDebeRetornarConflict() throws Exception {
+        when(cerrarSolicitudUseCase.ejecutar(
+                eq(new CodigoSolicitud("SOL-001")),
+                eq(new IdUsuario("900001")),
+                eq("La solicitud aun no se encuentra atendida.")
+        )).thenThrow(new TransicionEstadoInvalidaException("Solo solicitudes atendidas pueden cerrarse"));
+
+        mockMvc.perform(post("/api/v1/solicitudes/SOL-001/cierre")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "observacion": "La solicitud aun no se encuentra atendida."
+                                }
+                                """)
+                        .with(authentication(authenticationFor("900001", "security.admin@uq.edu.co", "ADMINISTRADOR"))))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.codigo").value("TRANSICION_INVALIDA"))
+                .andExpect(jsonPath("$.status").value(409));
+    }
+
+    @Test
+    void consultarSolicitudesConArgumentoInvalidoDebeRetornarBadRequest() throws Exception {
+        when(consultarSolicitudesUseCase.ejecutar(eq("DESCONOCIDO"), eq("CSU"), any()))
+                .thenThrow(new IllegalArgumentException("Estado invalido: DESCONOCIDO"));
+
+        mockMvc.perform(get("/api/v1/solicitudes")
+                        .param("estado", "DESCONOCIDO")
+                        .param("canal", "CSU"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("ARGUMENTO_INVALIDO"))
+                .andExpect(jsonPath("$.status").value(400));
+    }
+
+    @Test
+    void obtenerSolicitudConErrorInesperadoDebeRetornarInternalServerError() throws Exception {
+        when(consultarSolicitudPorCodigoUseCase.ejecutar(eq(new CodigoSolicitud("SOL-500"))))
+                .thenThrow(new RuntimeException("Fallo inesperado"));
+
+        mockMvc.perform(get("/api/v1/solicitudes/SOL-500"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.codigo").value("INTERNAL_ERROR"))
+                .andExpect(jsonPath("$.status").value(500));
+    }
+
+    private UsernamePasswordAuthenticationToken authenticationFor(String id, String email, String role) {
+        var usuario = new UsuarioEntity();
+        usuario.setId(id);
+        usuario.setEmail(email);
+        usuario.setPassword("$2a$10$abcdefghijklmnopqrstuv");
+        usuario.setTipo(co.edu.uniquindio.proyecto.domain.valueobject.TipoUsuario.valueOf(role));
+        usuario.setEstado(co.edu.uniquindio.proyecto.domain.valueobject.EstadoUsuario.ACTIVO);
+        var principal = new CustomUserDetails(usuario);
+        return new UsernamePasswordAuthenticationToken(
+                principal,
+                null,
+                java.util.List.of(new SimpleGrantedAuthority("ROLE_" + role))
+        );
     }
 }

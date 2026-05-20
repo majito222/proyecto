@@ -22,7 +22,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,7 +39,6 @@ import java.net.URI;
 @RestController
 @RequestMapping("/api/v1/usuarios")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 @Tag(name = "Usuarios", description = "Operaciones REST del agregado Usuario")
 public class UsuarioController {
 
@@ -57,10 +58,15 @@ public class UsuarioController {
     public ResponseEntity<UsuarioDetalleResponse> crearUsuario(
             @Valid @RequestBody CrearUsuarioRequest request) {
 
+        if (request.tipo() != CrearUsuarioRequest.TipoUsuario.ESTUDIANTE && !esAdministradorAutenticado()) {
+            throw new AccessDeniedException("Solo un administrador puede crear usuarios no estudiantes");
+        }
+
         var datos = usuarioRequestMapper.toDomainData(request);
         var usuario = crearUsuarioUseCase.ejecutar(
                 datos.nombre(),
                 datos.email(),
+                datos.password(),
                 datos.tipo()
         );
 
@@ -74,8 +80,18 @@ public class UsuarioController {
                 .body(usuarioMapper.toDetalleResponse(usuario));
     }
 
+    private boolean esAdministradorAutenticado() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        return authentication != null
+                && authentication.isAuthenticated()
+                && authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMINISTRADOR".equals(authority.getAuthority()));
+    }
+
     @GetMapping
     @Operation(summary = "Listar usuarios con paginacion")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<PaginaResponse<UsuarioResumenResponse>> listarUsuarios(
             @RequestParam(defaultValue = "0") int pagina,
             @RequestParam(defaultValue = "10") int tamano,
@@ -94,6 +110,7 @@ public class UsuarioController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Consultar usuario por id")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<UsuarioDetalleResponse> obtenerPorId(
             @PathVariable String id) {
 

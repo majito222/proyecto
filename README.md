@@ -1,160 +1,223 @@
-# 📘 Sistema de Triage y Gestión de Solicitudes Académicas
+# Sistema de Triage y Gestion de Solicitudes Academicas
 
-## 👥 Integrantes
+API REST construida con Spring Boot para gestionar solicitudes academicas, usuarios y su ciclo de atencion. El sistema centraliza el registro, clasificacion, priorizacion, asignacion, seguimiento y cierre de solicitudes, manteniendo historial y reglas de negocio por rol.
 
-* Mariajose Valencia Diaz
-* Santiago Marín Serna
-* Juan Esteban Cuervo
+## Arquitectura
 
-Curso: Programación Avanzada
+El proyecto sigue una separacion por capas inspirada en arquitectura hexagonal:
 
-Programa: Ingeniería de Sistemas y Computación
-
-Universidad del Quindío
-
----
-
-# 🎯 Contexto del Proyecto
-
-El Programa de Ingeniería de Sistemas y Computación gestiona múltiples solicitudes académicas provenientes de diferentes canales (CSU, correo, SAC, telefónico, entre otros). Actualmente, estas solicitudes carecen de una estructura unificada, mecanismos formales de clasificación y trazabilidad clara, generando ineficiencia operativa.
-
-Este proyecto tiene como propósito diseñar y materializar el núcleo del dominio de un Sistema de Triage y Gestión de Solicitudes Académicas aplicando principios de:
-
-* Arquitectura Empresarial
-* Domain-Driven Design (DDD)
-* Modelado de Dominio
-* Pruebas Unitarias del Dominio
-
----
-
-# 🏗 Arquitectura del Dominio
-
-La solución implementa una arquitectura orientada al dominio con separación clara entre:
-
-```
+```text
 co.edu.uniquindio.proyecto
-└── domain
-    ├── entity
-    ├── valueobject
-    ├── exception
-    └── service
+|- domain
+|  |- entity
+|  |- valueobject
+|  |- exception
+|  |- repository
+|  `- service
+|- application
+|  |- dto
+|  `- use cases
+`- infrastructure
+   |- rest
+   |- mapper
+   |- jpa
+   |- security
+   `- exception
 ```
 
-No existen dependencias con infraestructura, bases de datos ni frameworks externos en la capa de dominio.
+Flujo principal:
 
----
-
-# 🧠 Modelo de Dominio
-
-## 🔷 Agregado Raíz
-
-### Solicitud
-
-Responsable de:
-
-* Gestionar el ciclo de vida
-* Proteger invariantes
-* Registrar historial auditable
-* Controlar clasificación y priorización
-
-Estados soportados:
-
-```
-REGISTRADA → CLASIFICADA → EN_ATENCION → ATENDIDA → CERRADA
+```text
+Controller -> UseCase -> Domain -> Repository (puerto) -> Adapter JPA -> Base de datos
 ```
 
----
+Resumen por capa:
 
-## 🔷 Entidades
+- `domain`: entidades, value objects, invariantes y contratos de repositorio.
+- `application`: casos de uso que orquestan operaciones del sistema.
+- `infrastructure`: API REST, persistencia JPA, seguridad JWT, mappers y manejo de errores.
 
-* Solicitud (Aggregate Root)
-* Usuario
-* EventoHistorial
+Nota tecnica: la intencion hexagonal esta bien marcada, aunque `application` y algunos puertos de `domain` todavia usan tipos de Spring como `@Service`, `@Transactional`, `Page` y `Pageable`.
 
----
+## Tecnologias
 
-## 🔷 Value Objects
+- Java 25
+- Spring Boot 3.3
+- Spring Web MVC
+- Spring Data JPA
+- Spring Security
+- JWT con `jjwt` y firma HS256
+- Bean Validation
+- H2 Database
+- MySQL Connector/J
+- Springdoc OpenAPI
+- MapStruct
+- Lombok
+- Gradle
 
-* CodigoSolicitud
-* IdUsuario
-* Email
-* DescripcionSolicitud
-* PrioridadSolicitud
-* TipoSolicitud
-* TipoCanal
-* EstadoSolicitud
-* TipoUsuario
-* EstadoUsuario
+## Ejecucion
 
-Todos los Value Objects son:
+Requisitos:
 
-* Inmutables
-* Auto-validados
-* Comparables por valor
+- JDK 25
+- Gradle Wrapper
 
----
+Levantar la aplicacion:
 
-# 📜 Reglas de Negocio Implementadas
-
-* No se puede realizar una transición de estado inválida.
-* No se puede cerrar una solicitud si no está en estado ATENDIDA.
-* Una solicitud cerrada no puede modificarse.
-* Toda acción relevante genera un evento en el historial.
-* El historial no puede modificarse externamente.
-* Los Value Objects no pueden crearse en estado inválido.
-
-Cada regla está encapsulada en el dominio y validada mediante pruebas unitarias.
-
----
-
-# 🧪 Pruebas Unitarias
-
-Se implementaron pruebas siguiendo el patrón AAA (Arrange, Act, Assert).
-
-Cobertura:
-
-* Validación de Value Objects
-* Cambios de estado en entidades
-* Invariantes del agregado
-* Transiciones válidas e inválidas
-* Protección contra modificación externa del historial
-
-Todas las pruebas deben ejecutarse en verde.
-
----
-
-# ▶️ Cómo ejecutar las pruebas
-
-Desde la raíz del proyecto:
-
-Windows:
-
-```
-gradlew test
+```bash
+./gradlew bootRun
 ```
 
-Mac/Linux:
+En Windows:
 
+```powershell
+.\gradlew.bat bootRun
 ```
+
+Ejecutar pruebas:
+
+```bash
 ./gradlew test
 ```
 
-O directamente desde IntelliJ ejecutando la carpeta `src/test/java`.
+Utilidades:
 
----
+- API: `http://localhost:8081`
+- Swagger UI: `http://localhost:8081/swagger-ui.html`
+- H2 Console: `http://localhost:8081/h2-console`
 
-# 📂 Estructura de Entrega
+## Seguridad
 
-* Código fuente en `src/main/java`
-* Pruebas unitarias en `src/test/java`
-* Documentación UML en carpeta `/docs`
-* Glosario y reglas documentadas en `/docs`
-* Este README como guía principal del proyecto
+La API implementa autenticacion stateless con Spring Security + JWT.
 
----
+Flujo:
 
-# 🚀 Estado Actual
+1. `POST /api/auth/login` recibe `email` y `password`.
+2. `AuthenticationManager` valida credenciales contra usuarios guardados en BD.
+3. `JwtService` genera un token firmado con HS256.
+4. El cliente envia `Authorization: Bearer <token>`.
+5. `JwtAuthenticationFilter` valida el token y carga el usuario autenticado.
+6. Los endpoints sensibles toman el actor desde el usuario autenticado y no desde IDs enviados por el cliente.
 
-Entrega 01 – Modelado del Dominio y Materialización en Código.
+Rutas publicas:
 
-El dominio está completamente modelado, implementado y validado mediante pruebas unitarias, listo para evolucionar hacia las capas de aplicación, persistencia y presentación en las siguientes entregas.
+- `POST /api/auth/login`
+- `/swagger-ui/**`
+- `/v3/api-docs/**`
+- `/h2-console/**`
+
+Rutas protegidas:
+
+- `/api/v1/**`
+
+Roles principales:
+
+- `ESTUDIANTE`: crear solicitudes.
+- `FUNCIONARIO`: clasificar, priorizar e iniciar/finalizar atencion.
+- `ADMINISTRADOR`: crear usuarios, consultar usuarios, asignar responsable y cerrar solicitudes.
+- `FUNCIONARIO` o `ADMINISTRADOR`: cancelar solicitudes.
+
+Credenciales de desarrollo configuradas:
+
+- `security.admin@uq.edu.co` / `Admin123*`
+- `security.funcionario@uq.edu.co` / `Func123*`
+
+Recomendacion: para un entorno mas cercano a produccion, mover `jwt.secret` y credenciales de arranque a variables de entorno.
+
+## Endpoints principales
+
+Autenticacion:
+
+- `POST /api/auth/login`
+
+Usuarios:
+
+- `POST /api/v1/usuarios`
+- `GET /api/v1/usuarios`
+- `GET /api/v1/usuarios/{id}`
+
+Solicitudes:
+
+- `POST /api/v1/solicitudes`
+- `GET /api/v1/solicitudes`
+- `GET /api/v1/solicitudes/{codigo}`
+- `GET /api/v1/solicitudes/{codigo}/historial`
+- `PUT /api/v1/solicitudes/{codigo}/responsable`
+- `POST /api/v1/solicitudes/{codigo}/clasificacion`
+- `POST /api/v1/solicitudes/{codigo}/prioridad`
+- `POST /api/v1/solicitudes/{codigo}/atencion/inicio`
+- `POST /api/v1/solicitudes/{codigo}/atencion/finalizacion`
+- `POST /api/v1/solicitudes/{codigo}/cierre`
+- `POST /api/v1/solicitudes/{codigo}/cancelacion`
+
+Consultas adicionales:
+
+- `GET /api/v1/solicitudes/gui11/estado-prioridad/{estado}`
+- `GET /api/v1/solicitudes/gui11/codigo`
+- `GET /api/v1/solicitudes/gui11/activas`
+- `GET /api/v1/solicitudes/gui11/pendientes-alta`
+- `GET /api/v1/health`
+
+El detalle completo esta en [docs/endpoints.md](/C:/Users/santi/Documents/GitHub/proyecto/docs/endpoints.md).
+
+## Ejemplos
+
+Login:
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+```
+
+```json
+{
+  "email": "security.admin@uq.edu.co",
+  "password": "Admin123*"
+}
+```
+
+Respuesta:
+
+```json
+{
+  "token": "<jwt>",
+  "tipo": "Bearer",
+  "expiresIn": 900000
+}
+```
+
+Crear solicitud:
+
+```http
+POST /api/v1/solicitudes
+Authorization: Bearer <jwt>
+Content-Type: application/json
+```
+
+```json
+{
+  "canal": "CORREO",
+  "tipo": "CONSULTA_ACADEMICA",
+  "descripcion": "Solicito revision del estado de mi homologacion para el periodo actual."
+}
+
+Crear usuario:
+
+```json
+{
+  "nombre": "Ana Perez",
+  "email": "ana@uq.edu.co",
+  "password": "AnaSegura123*",
+  "tipo": "ESTUDIANTE"
+}
+```
+```
+
+## Documentacion adicional
+
+- [Guia Entrega 02](/C:/Users/santi/Documents/GitHub/proyecto/docs/guia-entrega-02.md)
+- [Resumen de arquitectura](/C:/Users/santi/Documents/GitHub/proyecto/docs/architecture-summary.md)
+- [Listado de endpoints](/C:/Users/santi/Documents/GitHub/proyecto/docs/endpoints.md)
+- [Trazabilidad de requisitos](/C:/Users/santi/Documents/GitHub/proyecto/docs/requirements-traceability.md)
+- [Resumen de seguridad](/C:/Users/santi/Documents/GitHub/proyecto/docs/security-summary.md)
+- [OpenAPI](/C:/Users/santi/Documents/GitHub/proyecto/docs/api/openapi.yaml)

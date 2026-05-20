@@ -1,5 +1,6 @@
 package co.edu.uniquindio.proyecto.application;
 
+import co.edu.uniquindio.proyecto.application.security.PasswordHasher;
 import co.edu.uniquindio.proyecto.domain.entity.Usuario;
 import co.edu.uniquindio.proyecto.domain.repository.UsuarioRepository;
 import co.edu.uniquindio.proyecto.domain.valueobject.Email;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CrearUsuarioUseCase {
 
     private final UsuarioRepository usuarioRepository;
+    private final PasswordHasher passwordHasher;
 
     /**
      * Crea un nuevo usuario.
@@ -27,15 +29,15 @@ public class CrearUsuarioUseCase {
      * @return usuario creado
      */
     @Transactional
-    public Usuario ejecutar(IdUsuario id, String nombre, Email email, TipoUsuario tipo) {
+    public Usuario ejecutar(IdUsuario id, String nombre, Email email, String password, TipoUsuario tipo) {
 
-        Usuario usuario = new Usuario(id, nombre, email, tipo);
+        Usuario usuario = new Usuario(id, nombre, email, passwordHasher.hash(password), tipo);
 
         return usuarioRepository.guardar(usuario);
     }
 
     @Transactional
-    public Usuario ejecutar(String nombre, Email email, TipoUsuario tipo) {
-        return ejecutar(IdUsuario.generar(), nombre, email, tipo);
+    public Usuario ejecutar(String nombre, Email email, String password, TipoUsuario tipo) {
+        return ejecutar(IdUsuario.generar(), nombre, email, password, tipo);
     }
 }

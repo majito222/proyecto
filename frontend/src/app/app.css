@@ -1,0 +1,74 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.app-shell__header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 64px;
+  padding: 0 1.5rem;
+  border-bottom: 1px solid var(--app-border);
+  background: color-mix(in srgb, var(--app-bg-soft) 88%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.brand,
+.nav a {
+  text-decoration: none;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-weight: 700;
+  color: var(--app-text);
+}
+
+.brand__mark {
+  display: inline-grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--app-primary), var(--app-accent));
+  color: #06111f;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  font-size: 0.95rem;
+}
+
+.nav a {
+  color: var(--app-muted);
+}
+
+.nav a.is-active {
+  color: var(--app-primary);
+  font-weight: 700;
+}
+
+.app-shell__main {
+  min-height: calc(100vh - 64px);
+}
+
+@media (max-width: 720px) {
+  .app-shell__header {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .nav {
+    flex-wrap: wrap;
+  }
+}

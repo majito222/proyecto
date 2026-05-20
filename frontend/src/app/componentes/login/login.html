@@ -1,0 +1,52 @@
+<section class="login-container">
+  <p-card styleClass="login-card">
+    <ng-template pTemplate="title">
+      <span class="login-title"><i class="pi pi-lock"></i> Iniciar sesion</span>
+    </ng-template>
+    <ng-template pTemplate="subtitle">
+      Accede a tu cuenta academica
+    </ng-template>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <p-fluid>
+        <p-iftalabel>
+          <input pInputText id="email" type="email" formControlName="email" autocomplete="email" />
+          <label for="email">Correo electronico</label>
+        </p-iftalabel>
+        @if (hasError('email', 'required')) {
+          <p-message severity="warn" text="El correo es obligatorio." />
+        }
+        @if (hasError('email', 'email')) {
+          <p-message severity="error" text="Ingresa un correo electronico valido." />
+        }
+
+        <p-iftalabel>
+          <p-password inputId="password" formControlName="password" [feedback]="false" [toggleMask]="true" />
+          <label for="password">Contrasena</label>
+        </p-iftalabel>
+        @if (hasError('password', 'required')) {
+          <p-message severity="warn" text="La contrasena es obligatoria." />
+        }
+        @if (hasError('password', 'minlength')) {
+          <p-message severity="error" text="La contrasena debe tener minimo 6 caracteres." />
+        }
+
+        @if (result()) {
+          <p-message severity="info" [text]="result() ?? ''" />
+        }
+
+        <p-button
+          type="submit"
+          label="Ingresar"
+          icon="pi pi-lock"
+          [loading]="isLoading()"
+          [disabled]="!canSubmit()"
+        />
+      </p-fluid>
+    </form>
+
+    <p class="register-link">
+      No tienes cuenta? <a routerLink="/registro">Registrate aqui</a>
+    </p>
+  </p-card>
+</section>

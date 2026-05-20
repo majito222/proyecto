@@ -14,6 +14,7 @@ public class UsuarioPersistenceMapper {
         entity.setId(usuario.getId().valor());
         entity.setNombre(usuario.getNombre());
         entity.setEmail(usuario.getEmail().valor());
+        entity.setPassword(usuario.getPasswordHash());
         entity.setTipo(usuario.getTipo());
         entity.setEstado(usuario.getEstado());
         return entity;
@@ -24,6 +25,7 @@ public class UsuarioPersistenceMapper {
                 new IdUsuario(entity.getId()),
                 entity.getNombre(),
                 new Email(entity.getEmail()),
+                entity.getPassword(),
                 entity.getTipo()
         );
 

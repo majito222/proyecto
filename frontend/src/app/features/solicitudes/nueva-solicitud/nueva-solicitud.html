@@ -1,0 +1,121 @@
+<section class="nueva-page">
+  <p-card>
+    <ng-template pTemplate="title">
+      <span class="title"><i class="pi pi-plus"></i> Nueva solicitud</span>
+    </ng-template>
+
+    <div class="session-notice" [class.session-notice--warn]="!puedeCrearSolicitud()">
+      <span>Ingresaste como {{ auth.sessionLabel() }}.</span>
+      @if (!puedeCrearSolicitud()) {
+        <small>Este formulario solo puede crear solicitudes con una cuenta de estudiante.</small>
+      }
+    </div>
+
+    <form [formGroup]="solicitudForm" (ngSubmit)="crear()">
+      <p-fluid>
+        <p-iftalabel>
+          <p-select inputId="canal" formControlName="canal" [options]="canales" />
+          <label for="canal">Canal</label>
+        </p-iftalabel>
+
+        <p-iftalabel>
+          <p-select inputId="tipo" formControlName="tipo" [options]="tipos" />
+          <label for="tipo">Tipo</label>
+        </p-iftalabel>
+
+        <div class="type-help">
+          <span class="type-help__title">{{ ayudaTipo().titulo }}</span>
+          <p>{{ ayudaTipo().descripcion }}</p>
+          <small>{{ ayudaTipo().ejemplo }}</small>
+        </div>
+
+        <div class="assistant-panel">
+          <div>
+            <span class="assistant-panel__title"><i class="pi pi-sparkles"></i> Asistente IA</span>
+            <p>Pregunta una duda o deja que te ayude a escribir la descripcion.</p>
+          </div>
+
+          <p-iftalabel>
+            <input pInputText id="aiQuestion" [formControl]="aiQuestion" autocomplete="off" />
+            <label for="aiQuestion">Pregunta al asistente</label>
+          </p-iftalabel>
+
+          <div class="assistant-actions">
+            <p-button type="button" label="Preguntar" icon="pi pi-comments" severity="secondary" (onClick)="preguntarIA()" />
+            <p-button type="button" label="Ayudarme a llenar" icon="pi pi-pencil" (onClick)="generarDescripcionIA()" />
+          </div>
+
+          @if (aiResponse()) {
+            <div class="assistant-response">
+              {{ aiResponse() }}
+            </div>
+          }
+        </div>
+
+        @if (solicitudForm.controls.tipo.value === 'CANCELACION') {
+          <p-iftalabel>
+            <p-select inputId="cancelacion" formControlName="cancelacion" [options]="tiposCancelacion" />
+            <label for="cancelacion">Que deseas cancelar?</label>
+          </p-iftalabel>
+        }
+
+        @if (requiereMateria()) {
+          <p-iftalabel>
+            <input pInputText id="materia" formControlName="materia" autocomplete="off" />
+            <label for="materia">Materia</label>
+          </p-iftalabel>
+          @if (materiaInvalida()) {
+            <p-message severity="warn" text="Escribe el nombre de la materia." />
+          }
+        }
+
+        @if (solicitudForm.controls.tipo.value === 'SOLICITUD_CUPO' || solicitudForm.controls.tipo.value === 'REGISTRO_ASIGNATURA') {
+          <p-iftalabel>
+            <input pInputText id="grupo" formControlName="grupo" autocomplete="off" />
+            <label for="grupo">Grupo u horario, si lo sabes</label>
+          </p-iftalabel>
+        }
+
+        @if (solicitudForm.controls.tipo.value === 'HOMOLOGACION') {
+          <p-iftalabel>
+            <input pInputText id="institucionOrigen" formControlName="institucionOrigen" autocomplete="off" />
+            <label for="institucionOrigen">Institucion o programa de origen</label>
+          </p-iftalabel>
+        }
+
+        @if (solicitudForm.controls.tipo.value === 'CANCELACION' && solicitudForm.controls.cancelacion.value === 'SEMESTRE') {
+          <div class="profile-context">
+            <span>Cancelacion de semestre</span>
+            <small>La solicitud quedara asociada al perfil con el que ingresaste: {{ auth.userEmail() ?? 'usuario actual' }}.</small>
+          </div>
+        }
+
+        <p-iftalabel>
+          <input pInputText id="periodo" formControlName="periodo" autocomplete="off" />
+          <label for="periodo">Periodo academico</label>
+        </p-iftalabel>
+
+        <p-iftalabel>
+          <textarea pTextarea id="descripcion" rows="5" formControlName="descripcion" [placeholder]="ayudaTipo().ejemplo"></textarea>
+          <label for="descripcion">Descripcion</label>
+        </p-iftalabel>
+        <div class="description-help" [class.description-help--error]="descripcionInvalida()">
+          <span>Minimo 20 caracteres.</span>
+          <span>{{ caracteresDescripcion() }}/1000</span>
+        </div>
+
+        <div class="ai-priority">
+          <span class="ai-priority__label">Prioridad IA</span>
+          <p-tag [severity]="tagPrioridad(prioridadSugerida().prioridad)" [value]="prioridadSugerida().prioridad" />
+          <span>{{ prioridadSugerida().justificacion }}</span>
+        </div>
+
+        @if (result()) {
+          <p-message severity="error" [text]="result() ?? ''" />
+        }
+
+        <p-button type="submit" label="Crear solicitud" icon="pi pi-plus" [loading]="isLoading()" [disabled]="!canSubmit()" />
+      </p-fluid>
+    </form>
+  </p-card>
+</section>

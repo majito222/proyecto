@@ -1,0 +1,135 @@
+.dashboard-page {
+  padding: 2rem;
+}
+
+.admin-toolbar {
+  margin-bottom: 1rem;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.78);
+}
+
+h1 {
+  margin: 0.25rem 0 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.eyebrow,
+.metric span,
+.log-list span,
+.log-list small,
+.drawer-content p {
+  color: var(--app-muted);
+}
+
+.toolbar-actions,
+.global-search {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.global-search {
+  min-width: min(24rem, 100%);
+  padding: 0 0.75rem;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  background: #0b1220;
+}
+
+.global-search input {
+  width: 100%;
+  border: 0;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.metric {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.metric i {
+  color: #22c55e;
+  font-size: 1.35rem;
+}
+
+.metric strong {
+  font-size: 1.85rem;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.operations-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(20rem, 0.8fr);
+  gap: 1rem;
+}
+
+.log-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.log-list article {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.9rem;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.58);
+}
+
+.drawer-content {
+  display: grid;
+  gap: 1rem;
+}
+
+.filter-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.8);
+}
+
+@media (max-width: 1280px) {
+  .metrics-grid,
+  .charts-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .operations-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbar-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 720px) {
+  .dashboard-page {
+    padding: 1rem;
+  }
+
+  .metrics-grid,
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,127 @@
+<section class="dashboard-page student">
+  <div class="hero">
+    <div>
+      <span class="eyebrow">Panel estudiante</span>
+      <h1>Resumen academico y solicitudes</h1>
+      <p>Seguimiento de materias, tareas, anuncios y procesos academicos activos.</p>
+    </div>
+    <a routerLink="/nueva-solicitud" class="hero-action"><i class="pi pi-plus"></i> Nueva solicitud</a>
+  </div>
+
+  @if (loading()) {
+    <div class="metrics-grid">
+      @for (item of [1, 2, 3, 4]; track item) {
+        <p-skeleton height="8rem" borderRadius="8px" />
+      }
+    </div>
+  } @else {
+    <div class="metrics-grid">
+      <p-card styleClass="metric-card">
+        <span class="metric-icon teal"><i class="pi pi-chart-line"></i></span>
+        <small>Promedio acumulado</small>
+        <strong>{{ promedio() }}</strong>
+      </p-card>
+      <p-card styleClass="metric-card">
+        <span class="metric-icon green"><i class="pi pi-book"></i></span>
+        <small>Materias inscritas</small>
+        <strong>{{ materias().length }}</strong>
+      </p-card>
+      <p-card styleClass="metric-card">
+        <span class="metric-icon amber"><i class="pi pi-clock"></i></span>
+        <small>Solicitudes pendientes</small>
+        <strong>{{ solicitudesPendientes() }}</strong>
+      </p-card>
+      <p-card styleClass="metric-card">
+        <span class="metric-icon violet"><i class="pi pi-graduation-cap"></i></span>
+        <small>Creditos activos</small>
+        <strong>{{ creditos() }}</strong>
+      </p-card>
+    </div>
+
+    <div class="dashboard-grid">
+      <p-card header="Estado de solicitudes" styleClass="panel chart-panel">
+        <p-chart type="doughnut" [data]="estadoChart()" [options]="chartOptions" height="260px" />
+      </p-card>
+
+      <p-card header="Avance por materia" styleClass="panel chart-panel">
+        <p-chart type="bar" [data]="cargaChart()" [options]="chartOptions" height="260px" />
+      </p-card>
+
+      <p-card header="Solicitudes recientes" styleClass="panel wide">
+        <p-table [value]="solicitudes()" responsiveLayout="scroll">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Codigo</th>
+              <th>Tipo</th>
+              <th>Estado</th>
+              <th>Fecha</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-solicitud>
+            <tr>
+              <td>{{ solicitud.id }}</td>
+              <td>{{ solicitud.tipo }}</td>
+              <td><p-tag [severity]="estadoSeverity(solicitud.estado)" [value]="solicitud.estado" /></td>
+              <td>{{ solicitud.fecha }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-card>
+
+      <p-card header="Materias inscritas" styleClass="panel">
+        <div class="subject-list">
+          @for (materia of materias(); track materia.codigo) {
+            <div class="subject-item">
+              <div>
+                <strong>{{ materia.nombre }}</strong>
+                <span>{{ materia.profesor }} · {{ materia.creditos }} creditos</span>
+              </div>
+              <p-progressbar [value]="materia.progreso" [showValue]="true" />
+            </div>
+          }
+        </div>
+      </p-card>
+
+      <p-card header="Tareas pendientes" styleClass="panel">
+        <div class="task-list">
+          @for (tarea of tareas(); track tarea.titulo) {
+            <div class="task-item">
+              <i class="pi pi-check-square"></i>
+              <div>
+                <strong>{{ tarea.titulo }}</strong>
+                <span>{{ tarea.materia }} · {{ tarea.fecha }}</span>
+              </div>
+              <p-tag [value]="tarea.prioridad" [severity]="tarea.prioridad === 'Alta' ? 'danger' : tarea.prioridad === 'Media' ? 'warn' : 'success'" />
+            </div>
+          }
+        </div>
+      </p-card>
+
+      <p-card header="Anuncios recientes" styleClass="panel">
+        <div class="announcement-list">
+          @for (anuncio of anuncios(); track anuncio.titulo) {
+            <article>
+              <p-tag [value]="anuncio.tipo" severity="info" />
+              <h3>{{ anuncio.titulo }}</h3>
+              <p>{{ anuncio.detalle }}</p>
+              <small>{{ anuncio.fecha }}</small>
+            </article>
+          }
+        </div>
+      </p-card>
+
+      <p-card header="Calendario academico" styleClass="panel">
+        <p-timeline [value]="actividades()" align="left">
+          <ng-template pTemplate="marker" let-actividad>
+            <span class="timeline-marker" [style.background]="actividad.color"><i [class]="actividad.icono"></i></span>
+          </ng-template>
+          <ng-template pTemplate="content" let-actividad>
+            <strong>{{ actividad.titulo }}</strong>
+            <p>{{ actividad.detalle }}</p>
+            <small>{{ actividad.fecha }}</small>
+          </ng-template>
+        </p-timeline>
+      </p-card>
+    </div>
+  }
+</section>

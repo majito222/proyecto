@@ -1,0 +1,80 @@
+<section class="solicitudes-page">
+  <div class="page-header">
+    <div>
+      <h1>Solicitudes academicas</h1>
+      <p>Consulta el estado, prioridad y fecha de creacion de tus solicitudes.</p>
+    </div>
+
+    <a routerLink="/nueva-solicitud" class="new-link">
+      <i class="pi pi-plus"></i>
+      Nueva solicitud
+    </a>
+  </div>
+
+  <section class="profile-panel">
+    <div class="profile-avatar">
+      <i class="pi pi-user"></i>
+    </div>
+    <div>
+      <span class="profile-label">Perfil de sesion</span>
+      <h2>{{ auth.userEmail() ?? 'Usuario autenticado' }}</h2>
+      <p>Ingreso como {{ auth.sessionLabel() }}</p>
+    </div>
+    <div class="profile-stats">
+      <span>{{ totalSolicitudes() }}</span>
+      <small>Solicitudes registradas</small>
+    </div>
+  </section>
+
+  <div class="grouped-requests">
+    @for (grupo of gruposSolicitudes(); track grupo.tipo) {
+      <section class="request-group">
+        <div class="group-header">
+          <div>
+            <h2><i [class]="grupo.icon"></i> {{ grupo.label }}</h2>
+            <p>{{ grupo.description }}</p>
+          </div>
+          <p-tag severity="info" [value]="grupo.solicitudes.length + ' solicitud(es)'" />
+        </div>
+
+        <div class="solicitudes-grid">
+          @for (solicitud of grupo.solicitudes; track solicitud.codigo) {
+            <p-card>
+              <ng-template pTemplate="title">
+                <span class="card-title">{{ solicitud.codigo }}</span>
+              </ng-template>
+              <ng-template pTemplate="subtitle">
+                <span class="type-label">
+                  <i [class]="tipoIcon(solicitud.tipo)"></i>
+                  {{ tipoLabel(solicitud.tipo) }}
+                </span>
+              </ng-template>
+
+              <div class="card-content">
+                <div class="tag-row">
+                  <p-tag [severity]="tagSeveridad(solicitud.estado)" [value]="solicitud.estado" />
+                  <p-tag [severity]="tagPrioridad(solicitud.prioridad)" [value]="solicitud.prioridad ?? 'SIN PRIORIDAD'" />
+                  @if (subtipoCancelacion(solicitud); as subtipo) {
+                    <p-tag severity="secondary" [value]="subtipo" />
+                  }
+                </div>
+
+                <div class="meta">
+                  <span><i class="pi pi-calendar"></i> {{ solicitud.fechaCreacion ? (solicitud.fechaCreacion | slice:0:10) : 'Sin fecha' }}</span>
+                  <span><i class="pi pi-user"></i> {{ solicitud.estudianteNombre }}</span>
+                </div>
+              </div>
+            </p-card>
+          }
+        </div>
+      </section>
+    } @empty {
+      <p-card>
+        <ng-template pTemplate="title">
+          No hay solicitudes
+        </ng-template>
+        <p>Cuando registres una solicitud aparecera en esta lista.</p>
+      </p-card>
+    }
+  </div>
+</section>

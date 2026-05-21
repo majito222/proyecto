@@ -1,0 +1,109 @@
+<p-toast />
+
+<section class="dashboard-page staff">
+  <div class="hero">
+    <div>
+      <span class="eyebrow">Panel funcionario</span>
+      <h1>Gestion operativa de solicitudes</h1>
+      <p>Cola asignada, busqueda avanzada, filtros y trazabilidad de atencion.</p>
+    </div>
+    <div class="workload">
+      <span>Carga de trabajo</span>
+      <strong>{{ cargaTrabajo() }}%</strong>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="metrics-grid">
+      @for (item of [1, 2, 3, 4]; track item) {
+        <p-skeleton height="8rem" borderRadius="8px" />
+      }
+    </div>
+  } @else {
+    <div class="metrics-grid">
+      <p-card><div class="metric"><i class="pi pi-inbox"></i><span>Asignadas</span><strong>{{ asignadas() }}</strong></div></p-card>
+      <p-card><div class="metric"><i class="pi pi-clock"></i><span>Pendientes</span><strong>{{ pendientes() }}</strong></div></p-card>
+      <p-card><div class="metric"><i class="pi pi-check-circle"></i><span>Aprobadas</span><strong>{{ aprobadas() }}</strong></div></p-card>
+      <p-card><div class="metric"><i class="pi pi-times-circle"></i><span>Rechazadas</span><strong>{{ rechazadas() }}</strong></div></p-card>
+    </div>
+
+    <div class="content-grid">
+      <p-card header="Solicitudes asignadas" styleClass="table-panel">
+        <div class="filters">
+          <span class="search">
+            <i class="pi pi-search"></i>
+            <input pInputText type="search" placeholder="Buscar por estudiante, programa o codigo" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" />
+          </span>
+          <p-select [options]="estados" [ngModel]="estadoFiltro()" (ngModelChange)="estadoFiltro.set($event)" />
+          <p-badge [value]="filtradas().length" severity="info" />
+        </div>
+
+        <p-table [value]="filtradas()" [paginator]="true" [rows]="5" responsiveLayout="scroll" sortMode="multiple">
+          <ng-template pTemplate="header">
+            <tr>
+              <th pSortableColumn="id">Codigo <p-sortIcon field="id" /></th>
+              <th pSortableColumn="estudiante">Estudiante <p-sortIcon field="estudiante" /></th>
+              <th>Tipo</th>
+              <th>Estado</th>
+              <th>Prioridad</th>
+              <th>Acciones</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-solicitud>
+            <tr>
+              <td>{{ solicitud.id }}</td>
+              <td>
+                <strong>{{ solicitud.estudiante }}</strong>
+                <small>{{ solicitud.programa }}</small>
+              </td>
+              <td>{{ solicitud.tipo }}</td>
+              <td><p-tag [value]="solicitud.estado" [severity]="estadoSeverity(solicitud.estado)" /></td>
+              <td><p-tag [value]="solicitud.prioridad" [severity]="solicitud.prioridad === 'Critica' || solicitud.prioridad === 'Alta' ? 'danger' : 'warn'" /></td>
+              <td>
+                <div class="row-actions">
+                  <p-button icon="pi pi-eye" size="small" severity="secondary" (onClick)="abrirComentario(solicitud)" />
+                  <p-button icon="pi pi-spinner" size="small" severity="info" (onClick)="cambiarEstado(solicitud, 'En revision')" />
+                  <p-button icon="pi pi-check" size="small" severity="success" (onClick)="cambiarEstado(solicitud, 'Aprobada')" />
+                  <p-button icon="pi pi-times" size="small" severity="danger" (onClick)="cambiarEstado(solicitud, 'Rechazada')" />
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="6">No hay solicitudes para el filtro seleccionado.</td></tr>
+          </ng-template>
+        </p-table>
+      </p-card>
+
+      <p-card header="Carga y actividad" styleClass="side-panel">
+        <p-chart type="line" [data]="workloadChart()" [options]="chartOptions" height="240px" />
+        <p-timeline [value]="actividad()">
+          <ng-template pTemplate="marker" let-item>
+            <span class="timeline-marker" [style.background]="item.color"><i [class]="item.icono"></i></span>
+          </ng-template>
+          <ng-template pTemplate="content" let-item>
+            <strong>{{ item.titulo }}</strong>
+            <p>{{ item.detalle }}</p>
+            <small>{{ item.fecha }}</small>
+          </ng-template>
+        </p-timeline>
+      </p-card>
+    </div>
+  }
+</section>
+
+<p-dialog
+  header="Comentario de solicitud"
+  [modal]="true"
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [style]="{ width: 'min(36rem, 92vw)' }"
+>
+  @if (solicitudSeleccionada(); as solicitud) {
+    <div class="dialog-body">
+      <p><strong>{{ solicitud.id }}</strong> · {{ solicitud.estudiante }}</p>
+      <textarea pTextarea rows="6" [ngModel]="comentario()" (ngModelChange)="comentario.set($event)" placeholder="Agrega observaciones para auditoria y seguimiento"></textarea>
+      <p-button label="Guardar comentario" icon="pi pi-save" (onClick)="guardarComentario()" />
+    </div>
+  }
+</p-dialog>

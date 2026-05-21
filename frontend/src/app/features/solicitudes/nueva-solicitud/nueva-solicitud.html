@@ -15,14 +15,6 @@
       <p-fluid>
 
         <p-iftalabel>
-          <input pInputText id="estudianteId" formControlName="estudianteId" autocomplete="off" />
-          <label for="estudianteId">ID del estudiante</label>
-        </p-iftalabel>
-        @if (solicitudForm.controls.estudianteId.invalid && solicitudForm.controls.estudianteId.touched) {
-          <p-message severity="warn" text="El ID del estudiante es requerido." />
-        }
-
-        <p-iftalabel>
           <p-select inputId="canal" formControlName="canal" [options]="canales" />
           <label for="canal">Canal</label>
         </p-iftalabel>

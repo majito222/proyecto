@@ -4,7 +4,6 @@
       <h1>Solicitudes academicas</h1>
       <p>Consulta el estado, prioridad y fecha de creacion de tus solicitudes.</p>
     </div>
-
     <a routerLink="/nueva-solicitud" class="new-link">
       <i class="pi pi-plus"></i>
       Nueva solicitud
@@ -25,6 +24,59 @@
       <small>Solicitudes registradas</small>
     </div>
   </section>
+
+  @if (solicitudGestionando()) {
+    <div class="gestion-panel">
+      <div class="gestion-header">
+        <p class="gestion-titulo">Gestionar: {{ solicitudGestionando()!.codigo }}</p>
+        <button class="btn-cerrar" (click)="cerrarGestion()">✕</button>
+      </div>
+
+      @if (resultGestion()) {
+        <div class="gestion-result">{{ resultGestion() }}</div>
+      }
+
+      <div class="gestion-acciones">
+        <div class="gestion-seccion">
+          <p class="gestion-label">1. Clasificar</p>
+          <select class="gestion-select" (change)="tipoSeleccionado.set($any($event.target).value)">
+            @for (tipo of tipos; track tipo) {
+              <option [value]="tipo" [selected]="tipo === tipoSeleccionado()">{{ tipo }}</option>
+            }
+          </select>
+          <button class="btn-gestion" (click)="clasificar()" [disabled]="isLoadingGestion()">
+            Clasificar
+          </button>
+        </div>
+
+        <div class="gestion-seccion">
+          <p class="gestion-label">2. Priorizar</p>
+          <select class="gestion-select" (change)="nivelSeleccionado.set($any($event.target).value)">
+            @for (nivel of niveles; track nivel) {
+              <option [value]="nivel" [selected]="nivel === nivelSeleccionado()">{{ nivel }}</option>
+            }
+          </select>
+          <input class="gestion-input" type="text" placeholder="Justificacion"
+            (input)="justificacion.set($any($event.target).value)" />
+          <button class="btn-gestion" (click)="priorizar()" [disabled]="isLoadingGestion()">
+            Asignar prioridad
+          </button>
+        </div>
+
+        <div class="gestion-seccion">
+          <p class="gestion-label">3. Atencion</p>
+          <div class="btn-row">
+            <button class="btn-gestion btn-success" (click)="iniciarAtencion()" [disabled]="isLoadingGestion()">
+              Iniciar atencion
+            </button>
+            <button class="btn-gestion btn-warning" (click)="finalizarAtencion()" [disabled]="isLoadingGestion()">
+              Finalizar atencion
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
 
   <div class="grouped-requests">
     @for (grupo of gruposSolicitudes(); track grupo.tipo) {
@@ -63,6 +115,12 @@
                   <span><i class="pi pi-calendar"></i> {{ solicitud.fechaCreacion ? (solicitud.fechaCreacion | slice:0:10) : 'Sin fecha' }}</span>
                   <span><i class="pi pi-user"></i> {{ solicitud.estudianteNombre }}</span>
                 </div>
+
+                @if (esFuncionario()) {
+                  <button class="btn-gestionar" (click)="abrirGestion(solicitud)">
+                    <i class="pi pi-cog"></i> Gestionar
+                  </button>
+                }
               </div>
             </p-card>
           }
@@ -70,9 +128,7 @@
       </section>
     } @empty {
       <p-card>
-        <ng-template pTemplate="title">
-          No hay solicitudes
-        </ng-template>
+        <ng-template pTemplate="title">No hay solicitudes</ng-template>
         <p>Cuando registres una solicitud aparecera en esta lista.</p>
       </p-card>
     }

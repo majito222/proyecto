@@ -5,9 +5,9 @@ import { RouterLink } from '@angular/router';
 import { catchError, map, of } from 'rxjs';
 import { Card } from 'primeng/card';
 import { Tag } from 'primeng/tag';
-import { SolicitudesService } from '../../../core/services/solicitudes.service';
-import { EstadoSolicitud, Prioridad, SolicitudResumen, TipoSolicitud } from '../../../shared/models/solicitudes';
-import { AuthService } from '../../../core/auth/auth.service';
+import { SolicitudesService } from '../../servicios/solicitudes';
+import { EstadoSolicitud, Prioridad, SolicitudResumen, TipoSolicitud } from '../../modelos/solicitudes';
+import { AuthService } from '../../servicios/auth';
 
 type TagSeverity = 'success' | 'warn' | 'danger';
 

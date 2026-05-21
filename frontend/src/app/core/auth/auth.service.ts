@@ -28,7 +28,6 @@ export class AuthService {
         localStorage.setItem(TOKEN_KEY, response.token);
         localStorage.removeItem(LEGACY_TOKEN_KEY);
         localStorage.removeItem(LEGACY_ROLES_KEY);
-
         const roles = this.extractRolesFromToken(response.token);
         localStorage.setItem(ROLES_KEY, JSON.stringify(roles));
         this.roles.set(roles);
@@ -49,11 +48,27 @@ export class AuthService {
     return this.roles();
   }
 
+<<<<<<< HEAD:frontend/src/app/core/auth/auth.service.ts
   private readStoredRoles(): UserRole[] {
+=======
+  getUserId(): string | null {
+    const token = this.getToken();
+    if (!token) return null;
+    try {
+      const [, payload] = token.split('.');
+      if (!payload) return null;
+      const normalizedPayload = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const decoded = JSON.parse(atob(normalizedPayload)) as { userId?: string };
+      return decoded.userId ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  private readStoredRoles(): string[] {
+>>>>>>> 45d170c (feat: configuracion adicional):frontend/src/app/servicios/auth.ts
     const rawRoles = localStorage.getItem(ROLES_KEY) ?? localStorage.getItem(LEGACY_ROLES_KEY);
-
     if (!rawRoles) return [];
-
     try {
       const parsedRoles: unknown = JSON.parse(rawRoles);
       return Array.isArray(parsedRoles)
@@ -106,7 +121,6 @@ export class AuthService {
 
   private extractSubject(token: string | null): string | null {
     if (!token) return null;
-
     try {
       const [, payload] = token.split('.');
       if (!payload) return null;

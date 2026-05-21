@@ -60,6 +60,12 @@ export const routes: Routes = [
     loadComponent: () => import('./features/dashboard/admin/admin-dashboard').then((m) => m.AdminDashboard)
   },
   {
+    path: 'funcionario',
+    canActivate: [rolesGuard],
+    data: { expectedRoles: ['FUNCIONARIO'] },
+    loadComponent: () => import('./componentes/funcionario/funcionario').then((m) => m.Funcionario)
+  },
+  {
     path: 'unauthorized',
     loadComponent: () => import('./shared/components/unauthorized/unauthorized').then((m) => m.Unauthorized)
   },

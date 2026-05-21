@@ -1,0 +1,105 @@
+<div class="funcionario-container">
+
+  <div class="funcionario-header">
+    <div>
+      <p class="funcionario-subtitle">Panel de gestión</p>
+      <h1 class="funcionario-title">Dashboard Funcionario</h1>
+    </div>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <p class="metric-label">Total solicitudes</p>
+      <p class="metric-value">{{ totalSolicitudes() }}</p>
+    </div>
+    <div class="metric-card">
+      <p class="metric-label">Registradas</p>
+      <p class="metric-value">{{ registradas() }}</p>
+    </div>
+    <div class="metric-card">
+      <p class="metric-label">En atención</p>
+      <p class="metric-value">{{ enAtencion() }}</p>
+    </div>
+  </div>
+
+  <div class="content-grid">
+
+    <div class="card">
+      <p class="card-title">Solicitudes</p>
+      @if (solicitudes().length === 0) {
+        <p class="empty-msg">No hay solicitudes registradas.</p>
+      } @else {
+        <div class="solicitudes-list">
+          @for (sol of solicitudes(); track sol.codigo) {
+            <div class="solicitud-item"
+              [class.selected]="solicitudSeleccionada()?.codigo === sol.codigo"
+              (click)="seleccionar(sol)">
+              <div>
+                <p class="sol-codigo">{{ sol.codigo }}</p>
+                <p class="sol-tipo">{{ sol.tipo }}</p>
+                <p class="sol-nombre">{{ sol.estudianteNombre }}</p>
+              </div>
+              <span class="badge" [ngClass]="badgeEstado(sol.estado)">{{ sol.estado }}</span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="card">
+      @if (!solicitudSeleccionada()) {
+        <p class="empty-msg">Selecciona una solicitud para gestionarla.</p>
+      } @else {
+        <p class="card-title">Gestionar: {{ solicitudSeleccionada()!.codigo }}</p>
+
+        @if (result()) {
+          <div class="result-msg">{{ result() }}</div>
+        }
+
+        <div class="acciones">
+
+          <div class="accion-seccion">
+            <p class="accion-titulo">1. Clasificar</p>
+            <select class="campo-select" (change)="tipoSeleccionado.set($any($event.target).value)">
+              @for (tipo of tipos; track tipo) {
+                <option [value]="tipo" [selected]="tipo === tipoSeleccionado()">{{ tipo }}</option>
+              }
+            </select>
+            <button class="btn-accion" (click)="clasificar()" [disabled]="isLoading()">
+              Clasificar solicitud
+            </button>
+          </div>
+
+          <div class="accion-seccion">
+            <p class="accion-titulo">2. Priorizar</p>
+            <select class="campo-select" (change)="nivelSeleccionado.set($any($event.target).value)">
+              @for (nivel of niveles; track nivel) {
+                <option [value]="nivel" [selected]="nivel === nivelSeleccionado()">{{ nivel }}</option>
+              }
+            </select>
+            <input class="campo-input" type="text" placeholder="Justificación"
+              (input)="justificacion.set($any($event.target).value)" />
+            <button class="btn-accion" (click)="priorizar()" [disabled]="isLoading()">
+              Asignar prioridad
+            </button>
+          </div>
+
+          <div class="accion-seccion">
+            <p class="accion-titulo">3. Atención</p>
+            <div class="btn-group">
+              <button class="btn-accion btn-success" (click)="iniciarAtencion()" [disabled]="isLoading()">
+                Iniciar atención
+              </button>
+              <button class="btn-accion btn-warning" (click)="finalizarAtencion()" [disabled]="isLoading()">
+                Finalizar atención
+              </button>
+            </div>
+          </div>
+
+        </div>
+      }
+    </div>
+
+  </div>
+
+</div>

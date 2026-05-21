@@ -61,7 +61,7 @@ export class Login {
         if (roles.some(r => r.includes('ADMINISTRADOR'))) {
           void this.router.navigateByUrl('/admin');
         } else if (roles.some(r => r.includes('FUNCIONARIO'))) {
-          void this.router.navigateByUrl('/lista-solicitudes');
+          void this.router.navigateByUrl('/funcionario');
         } else {
           void this.router.navigateByUrl('/lista-solicitudes');
         }

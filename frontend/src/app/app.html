@@ -6,11 +6,17 @@
 
   <nav class="nav">
     <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
+    @if (auth.hasAnyRole(['ESTUDIANTE'])) {
+      <a routerLink="/dashboard/estudiante" routerLinkActive="is-active">Panel estudiante</a>
+    }
+    @if (auth.hasAnyRole(['FUNCIONARIO'])) {
+      <a routerLink="/dashboard/funcionario" routerLinkActive="is-active">Panel funcionario</a>
+    }
+    @if (auth.hasAnyRole(['ADMINISTRADOR'])) {
+      <a routerLink="/dashboard/admin" routerLinkActive="is-active">Panel admin</a>
+    }
     <a routerLink="/nueva-solicitud" routerLinkActive="is-active">Nueva solicitud</a>
     <a routerLink="/lista-solicitudes" routerLinkActive="is-active">Solicitudes</a>
-    @if (auth.hasAnyRole(['ADMINISTRADOR'])) {
-      <a routerLink="/admin" routerLinkActive="is-active">Admin</a>
-    }
     @if (auth.isAuthenticated()) {
       <span class="session-role">Ingreso: {{ auth.sessionLabel() }}</span>
       <p-button label="Salir" severity="secondary" size="small" (onClick)="auth.logout()" />

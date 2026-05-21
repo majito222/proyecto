@@ -19,7 +19,7 @@ export interface UsuarioDetalle {
 @Injectable({ providedIn: 'root' })
 export class UsuariosService {
   private readonly http = inject(HttpClient);
-  private readonly url = 'http://localhost:8080/api/v1/usuarios';
+  private readonly url = 'http://localhost:8081/api/v1/usuarios';
 
   crear(usuario: CrearUsuarioRequest) {
     return this.http.post<UsuarioDetalle>(this.url, usuario);

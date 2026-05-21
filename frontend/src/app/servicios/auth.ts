@@ -11,7 +11,7 @@ const LEGACY_ROLES_KEY = 'auth_roles';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:8080/api/auth/login';
+  private readonly apiUrl = 'http://localhost:8081/api/auth/login';
 
   readonly isAuthenticated = signal(Boolean(this.getToken()));
   readonly roles = signal<string[]>(this.readStoredRoles());
@@ -25,11 +25,12 @@ export class AuthService {
   login(credentials: LoginRequest) {
     return this.http.post<TokenResponse>(this.apiUrl, credentials).pipe(
       tap((response) => {
-        const roles = response.roles ?? [];
         localStorage.setItem(TOKEN_KEY, response.token);
-        localStorage.setItem(ROLES_KEY, JSON.stringify(roles));
         localStorage.removeItem(LEGACY_TOKEN_KEY);
         localStorage.removeItem(LEGACY_ROLES_KEY);
+
+        const roles = this.extractRolesFromToken(response.token);
+        localStorage.setItem(ROLES_KEY, JSON.stringify(roles));
         this.roles.set(roles);
         this.isAuthenticated.set(true);
       }),
@@ -51,14 +52,13 @@ export class AuthService {
   private readStoredRoles(): string[] {
     const rawRoles = localStorage.getItem(ROLES_KEY) ?? localStorage.getItem(LEGACY_ROLES_KEY);
 
-
-    if (!rawRoles) {
-      return [];
-    }
+    if (!rawRoles) return [];
 
     try {
       const parsedRoles: unknown = JSON.parse(rawRoles);
-      return Array.isArray(parsedRoles) ? parsedRoles.filter((role): role is string => typeof role === 'string') : [];
+      return Array.isArray(parsedRoles)
+        ? parsedRoles.filter((role): role is string => typeof role === 'string')
+        : [];
     } catch {
       localStorage.removeItem(ROLES_KEY);
       localStorage.removeItem(LEGACY_ROLES_KEY);
@@ -66,32 +66,42 @@ export class AuthService {
     }
   }
 
+  private extractRolesFromToken(token: string): string[] {
+    try {
+      const [, payload] = token.split('.');
+      if (!payload) return [];
+      const normalizedPayload = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const decoded = JSON.parse(atob(normalizedPayload)) as { roles?: unknown };
+      if (!Array.isArray(decoded.roles)) return [];
+      return decoded.roles.filter((r): r is string => typeof r === 'string');
+    } catch {
+      return [];
+    }
+  }
+
   hasAnyRole(expectedRoles: readonly string[]): boolean {
     const currentRoles = this.roles();
-    return expectedRoles.some((role) => currentRoles.includes(role));
+    return expectedRoles.some((role) =>
+      currentRoles.includes(role) || currentRoles.includes(`ROLE_${role}`)
+    );
   }
 
   private formatRole(role: string): string {
+    const normalizedRole = role.replace('ROLE_', '');
     const labels: Record<string, string> = {
       ADMINISTRADOR: 'Administrador',
       FUNCIONARIO: 'Funcionario',
       ESTUDIANTE: 'Estudiante'
     };
-
-    return labels[role] ?? role;
+    return labels[normalizedRole] ?? normalizedRole;
   }
 
   private extractSubject(token: string | null): string | null {
-    if (!token) {
-      return null;
-    }
+    if (!token) return null;
 
     try {
       const [, payload] = token.split('.');
-      if (!payload) {
-        return null;
-      }
-
+      if (!payload) return null;
       const normalizedPayload = payload.replace(/-/g, '+').replace(/_/g, '/');
       const decodedPayload = JSON.parse(atob(normalizedPayload)) as { sub?: unknown };
       return typeof decodedPayload.sub === 'string' ? decodedPayload.sub : null;

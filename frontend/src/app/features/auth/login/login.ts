@@ -53,7 +53,19 @@ export class Login {
     ).subscribe({
       next: () => {
         this.result.set('Inicio de sesion correcto.');
+<<<<<<< HEAD:frontend/src/app/features/auth/login/login.ts
         void this.router.navigateByUrl(this.auth.dashboardUrl());
+=======
+        const roles = this.auth.getRoles();
+
+        if (roles.some(r => r.includes('ADMINISTRADOR'))) {
+          void this.router.navigateByUrl('/admin');
+        } else if (roles.some(r => r.includes('FUNCIONARIO'))) {
+          void this.router.navigateByUrl('/lista-solicitudes');
+        } else {
+          void this.router.navigateByUrl('/lista-solicitudes');
+        }
+>>>>>>> 1be9452 (feat: registro de usuarios, creacion de solicitudes y dashboard admin):frontend/src/app/componentes/login/login.ts
       },
       error: () => {
         this.result.set('No fue posible iniciar sesion. Revisa tus credenciales.');

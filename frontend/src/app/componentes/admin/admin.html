@@ -1,0 +1,95 @@
+<div class="admin-container">
+
+  <div class="admin-header">
+    <div>
+      <p class="admin-subtitle">Bienvenido de nuevo</p>
+      <h1 class="admin-title">Panel de administración</h1>
+    </div>
+    <div class="admin-actions">
+      <button class="btn-action" routerLink="/nueva-solicitud">
+        <i class="ti ti-plus"></i> Nueva solicitud
+      </button>
+    </div>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <p class="metric-label"><i class="ti ti-file-text"></i> Total solicitudes</p>
+      <p class="metric-value">{{ totalSolicitudes() }}</p>
+      <p class="metric-sub success">Solicitudes registradas</p>
+    </div>
+    <div class="metric-card">
+      <p class="metric-label"><i class="ti ti-clock"></i> En atención</p>
+      <p class="metric-value">{{ enAtencion() }}</p>
+      <p class="metric-sub warning">Pendientes de resolver</p>
+    </div>
+    <div class="metric-card">
+      <p class="metric-label"><i class="ti ti-check"></i> Atendidas</p>
+      <p class="metric-value">{{ atendidas() }}</p>
+      <p class="metric-sub success">Completadas</p>
+    </div>
+    <div class="metric-card">
+      <p class="metric-label"><i class="ti ti-alert-triangle"></i> Prioridad alta</p>
+      <p class="metric-value danger">{{ altaPrioridad() }}</p>
+      <p class="metric-sub danger">Requieren atención</p>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <div class="card">
+      <div class="card-header">
+        <p class="card-title">Solicitudes recientes</p>
+      </div>
+      @if (solicitudes().length === 0) {
+        <p class="empty-msg">No hay solicitudes registradas.</p>
+      } @else {
+        <div class="solicitudes-list">
+          @for (sol of solicitudes().slice(0, 5); track sol.codigo) {
+            <div class="solicitud-item">
+              <div>
+                <p class="sol-codigo">{{ sol.codigo }}</p>
+                <p class="sol-tipo">{{ sol.tipo }} · {{ sol.estudianteNombre }}</p>
+              </div>
+              <span class="badge" [ngClass]="badgeEstado(sol.estado)">{{ sol.estado }}</span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="card">
+      <p class="card-title">Por estado</p>
+      <div class="estado-list">
+        <div class="estado-item">
+          <span class="estado-label">Registradas</span>
+          <div class="bar-wrap">
+            <div class="bar blue" [style.width.%]="pct(registradas(), totalSolicitudes())"></div>
+          </div>
+          <span class="estado-num">{{ registradas() }}</span>
+        </div>
+        <div class="estado-item">
+          <span class="estado-label">En atención</span>
+          <div class="bar-wrap">
+            <div class="bar amber" [style.width.%]="pct(enAtencion(), totalSolicitudes())"></div>
+          </div>
+          <span class="estado-num">{{ enAtencion() }}</span>
+        </div>
+        <div class="estado-item">
+          <span class="estado-label">Atendidas</span>
+          <div class="bar-wrap">
+            <div class="bar green" [style.width.%]="pct(atendidas(), totalSolicitudes())"></div>
+          </div>
+          <span class="estado-num">{{ atendidas() }}</span>
+        </div>
+        <div class="estado-item">
+          <span class="estado-label">Cerradas</span>
+          <div class="bar-wrap">
+            <div class="bar gray" [style.width.%]="pct(cerradas(), totalSolicitudes())"></div>
+          </div>
+          <span class="estado-num">{{ cerradas() }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

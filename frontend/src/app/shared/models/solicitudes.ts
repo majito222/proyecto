@@ -26,6 +26,7 @@ export interface SolicitudDetalle extends SolicitudResumen {
 }
 
 export interface CrearSolicitudRequest {
+  estudianteId: string;
   canal: CanalSolicitud;
   tipo: TipoSolicitud;
   descripcion: string;

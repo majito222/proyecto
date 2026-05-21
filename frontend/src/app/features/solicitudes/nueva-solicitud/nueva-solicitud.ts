@@ -40,6 +40,7 @@ export class NuevaSolicitud {
   readonly tipos: TipoSolicitud[] = ['REGISTRO_ASIGNATURA', 'HOMOLOGACION', 'CANCELACION', 'SOLICITUD_CUPO', 'CONSULTA_ACADEMICA'];
   readonly canales: CanalSolicitud[] = ['SAC', 'CSU', 'CORREO', 'TELEFONICO'];
   readonly tiposCancelacion: Array<'MATERIA' | 'SEMESTRE'> = ['MATERIA', 'SEMESTRE'];
+
   private readonly ayudasPorTipo: Record<TipoSolicitud, { titulo: string; descripcion: string; ejemplo: string }> = {
     REGISTRO_ASIGNATURA: {
       titulo: 'Registro de asignatura',
@@ -78,6 +79,7 @@ export class NuevaSolicitud {
     periodo: [''],
     descripcion: ['', [Validators.required, Validators.minLength(20), Validators.maxLength(1000)]]
   });
+
   readonly aiQuestion = this.fb.nonNullable.control('');
 
   private readonly formStatus = toSignal(this.solicitudForm.statusChanges, {
@@ -103,6 +105,7 @@ export class NuevaSolicitud {
     return ['REGISTRO_ASIGNATURA', 'HOMOLOGACION', 'SOLICITUD_CUPO'].includes(value.tipo)
       || (value.tipo === 'CANCELACION' && value.cancelacion === 'MATERIA');
   });
+
   readonly canSubmit = computed(() => {
     const value = this.rawFormValue();
     const materiaValida = !this.requiereMateria() || value.materia.trim().length >= 3;
@@ -115,11 +118,18 @@ export class NuevaSolicitud {
       return;
     }
 
+    const estudianteId = this.auth.getUserId();
+    if (!estudianteId) {
+      this.result.set('No se pudo obtener el ID del estudiante. Vuelve a iniciar sesion.');
+      return;
+    }
+
     this.isLoading.set(true);
     this.result.set(null);
 
     const value = this.solicitudForm.getRawValue();
     this.solicitudesService.crear({
+      estudianteId,
       canal: value.canal,
       tipo: value.tipo,
       descripcion: this.descripcionConDetalles()
@@ -129,7 +139,7 @@ export class NuevaSolicitud {
     ).subscribe({
       next: () => void this.router.navigateByUrl('/lista-solicitudes'),
       error: (error: unknown) => this.result.set(this.mensajeErrorCreacion(error))
-  });
+    });
   }
 
   tagPrioridad(prioridad: Prioridad): 'success' | 'warn' | 'danger' {
@@ -139,7 +149,6 @@ export class NuevaSolicitud {
       ALTA: 'danger',
       CRITICA: 'danger'
     };
-
     return severidades[prioridad];
   }
 
@@ -196,15 +205,13 @@ export class NuevaSolicitud {
   private mensajeErrorCreacion(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
       if (error.status === 403) {
-        return 'No tienes permiso para crear solicitudes con este usuario. Inicia sesion con una cuenta de estudiante.';
+        return 'No tienes permiso para crear solicitudes. Inicia sesion con una cuenta de estudiante.';
       }
-
       const mensaje = error.error?.mensaje || error.error?.message;
       if (typeof mensaje === 'string' && mensaje.trim()) {
         return mensaje;
       }
     }
-
     return 'No fue posible crear la solicitud. Revisa los datos e intenta nuevamente.';
   }
 }

@@ -1,0 +1,201 @@
+:host {
+  display: block;
+}
+
+.admin-container {
+  width: min(1100px, 100%);
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.admin-subtitle {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin: 0 0 4px;
+}
+
+.admin-title {
+  font-size: 22px;
+  font-weight: 500;
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.admin-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-action {
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.metric-card {
+  background: var(--color-background-secondary);
+  border-radius: var(--border-radius-md);
+  padding: 1rem;
+}
+
+.metric-label {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin: 0 0 6px;
+}
+
+.metric-value {
+  font-size: 24px;
+  font-weight: 500;
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.metric-value.danger {
+  color: var(--color-text-danger);
+}
+
+.metric-sub {
+  font-size: 12px;
+  margin: 4px 0 0;
+}
+
+.metric-sub.success { color: var(--color-text-success); }
+.metric-sub.warning { color: var(--color-text-warning); }
+.metric-sub.danger  { color: var(--color-text-danger); }
+
+.content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.card {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  padding: 1rem 1.25rem;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0 0 1rem;
+  color: var(--color-text-primary);
+}
+
+.empty-msg {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.solicitudes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.solicitud-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background: var(--color-background-secondary);
+  border-radius: var(--border-radius-md);
+}
+
+.sol-codigo {
+  font-size: 13px;
+  font-weight: 500;
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.sol-tipo {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin: 2px 0 0;
+}
+
+.badge {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: var(--border-radius-md);
+}
+
+.badge-registrada   { background: var(--color-background-secondary); color: var(--color-text-secondary); }
+.badge-clasificada  { background: var(--color-background-info);      color: var(--color-text-info); }
+.badge-en-atencion  { background: var(--color-background-warning);   color: var(--color-text-warning); }
+.badge-atendida     { background: var(--color-background-success);   color: var(--color-text-success); }
+.badge-cerrada      { background: var(--color-background-secondary); color: var(--color-text-secondary); }
+.badge-cancelada    { background: var(--color-background-danger);    color: var(--color-text-danger); }
+
+.estado-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.estado-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.estado-label {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  min-width: 80px;
+}
+
+.bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: var(--color-background-secondary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.bar.blue  { background: #378ADD; }
+.bar.amber { background: #EF9F27; }
+.bar.green { background: #639922; }
+.bar.gray  { background: #888780; }
+
+.estado-num {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  min-width: 24px;
+  text-align: right;
+}
